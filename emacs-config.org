@@ -351,6 +351,51 @@ default styles with a command like =clang-format -style=llvm
 -dump-config > .clang-format=, and then further tweak it using a
 website like [[https://www.clangformat.com/][this one]].
 
+***** Code Styles
+
+See: https://stackoverflow.com/a/39907217 for a novel way of
+generating these style settings. Works best if you already have a
+=.clang-format= to enforce the style with.
+
+****** Xournal++
+
+Code style to be used when contributing to [[https://github.com/xournalpp/xournalpp][Xournal++]], based off of
+their =.clang-format= file.
+
+#+begin_src emacs-lisp
+(c-add-style "xournalpp"
+             '("bsd"
+               (indent-tabs-mode . t)
+               (tab-width . 8)
+
+               (c-basic-offset . 8)     ; Guessed value
+               (c-offsets-alist
+                (access-label . 0)      ; Guessed value
+                (arglist-cont . 0)      ; Guessed value
+                (arglist-intro . +)     ; Guessed value
+                (block-close . 0)       ; Guessed value
+                (brace-entry-open . 0)  ; Guessed value
+                (brace-list-close . 0)  ; Guessed value
+                (brace-list-entry . 0)  ; Guessed value
+                (brace-list-intro . +)  ; Guessed value
+                (brace-list-open . 0)   ; Guessed value
+                (class-close . 0)       ; Guessed value
+                (class-open . 0)        ; Guessed value
+                (defun-block-intro . +) ; Guessed value
+                (defun-close . 0)       ; Guessed value
+                (defun-open . 0)        ; Guessed value
+                (else-clause . 0)       ; Guessed value
+                (inclass . +)           ; Guessed value
+                (inline-close . 0)      ; Guessed value
+                (member-init-cont . -2) ; Guessed value
+                (member-init-intro . 1) ; Guessed value
+                (statement . 0)             ; Guessed value
+                (statement-block-intro . +) ; Guessed value
+                (substatement-open . 0)     ; Guessed value
+                (topmost-intro . +)         ; Guessed value
+                (topmost-intro-cont . 0)))) ; Guessed value
+#+end_src
+
 **** CMake
 #+begin_src emacs-lisp
 (use-package cmake-mode)
