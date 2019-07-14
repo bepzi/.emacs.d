@@ -357,6 +357,42 @@ See: https://stackoverflow.com/a/39907217 for a novel way of
 generating these style settings. Works best if you already have a
 =.clang-format= to enforce the style with.
 
+****** The One True C/C++ Code Style
+
+...my own personal coding style, loosely based on Rust's
+defaults. Spaces rather than tabs, K&R-style brace placement.
+
+#+begin_src emacs-lisp
+(c-add-style "ben"
+             '("k&r"
+               (indent-tabs-mode . nil)
+
+               (c-basic-offset . 4)     ; Guessed value
+               (c-offsets-alist
+                (access-label . 0)      ; Guessed value
+                (arglist-cont . 0)      ; Guessed value
+                (arglist-intro . +)     ; Guessed value
+                (block-close . 0)       ; Guessed value
+                (case-label . 0)        ; Guessed value
+                (class-close . 0)       ; Guessed value
+                (defun-block-intro . +) ; Guessed value
+                (defun-close . 0)       ; Guessed value
+                (inclass . +)           ; Guessed value
+                (inline-close . 0)      ; Guessed value
+                (member-init-cont . 0)  ; Guessed value
+                (member-init-intro . +) ; Guessed value
+                (statement . 0)             ; Guessed value
+                (statement-block-intro . +) ; Guessed value
+                (statement-case-intro . +) ; Guessed value
+                (statement-cont . +)       ; Guessed value
+                (topmost-intro . 0)        ; Guessed value
+                (topmost-intro-cont . 0)))) ; Guessed value
+
+(setq-default c-default-style '((java-mode . "java")
+                                (awk-mode . "awk")
+                                (other . "ben")))
+#+end_src
+
 ****** Xournal++
 
 Code style to be used when contributing to [[https://github.com/xournalpp/xournalpp][Xournal++]], based off of
