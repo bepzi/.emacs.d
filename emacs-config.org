@@ -86,7 +86,13 @@ Helm makes it easy to complete various things.
 (use-package helm
   :diminish helm-mode
   :config (bind-key "C-x C-f" 'helm-find-files)
-          (bind-key "M-x" 'helm-M-x))
+          (bind-key "M-x" 'helm-M-x)
+          (bind-key "M-y" 'helm-show-kill-ring)
+          (bind-key "C-x b" 'helm-mini)
+          (bind-key "C-h f" 'helm-apropos)
+          (bind-key "C-h r" 'helm-info-emacs)
+          (bind-key "C-h C-l" 'helm-locate-library))
+(helm-autoresize-mode t)
 (helm-mode 1)
 #+end_src
 
