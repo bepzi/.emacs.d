@@ -438,6 +438,36 @@ their =.clang-format= file.
                 (topmost-intro-cont . 0)))) ; Guessed value
 #+end_src
 
+****** Tsoding's Style
+
+#+begin_src emacs-lisp
+(c-add-style "tsoding"
+             '("k&r"
+               (indent-tabs-mode . nil)
+
+               (c-basic-offset . 4)     ; Guessed value
+               (c-offsets-alist
+                (arglist-cont . 0)      ; Guessed value
+                (arglist-intro . +)     ; Guessed value
+                (block-close . 0)       ; Guessed value
+                (brace-list-close . 0)  ; Guessed value
+                (brace-list-entry . 0)  ; Guessed value
+                (brace-list-intro . +)  ; Guessed value
+                (case-label . 0)        ; Guessed value
+                (class-close . 0)       ; Guessed value
+                (class-open . 0)        ; Guessed value
+                (defun-block-intro . +) ; Guessed value
+                (defun-close . 0)       ; Guessed value
+                (defun-open . 0)        ; Guessed value
+                (inclass . +)           ; Guessed value
+                (statement . 0)         ; Guessed value
+                (statement-block-intro . +) ; Guessed value
+                (statement-case-intro . +) ; Guessed value
+                (statement-cont . +)    ; Guessed value
+                (topmost-intro . 0)     ; Guessed value
+                (topmost-intro-cont . 0))))  ; Guessed value
+#+end_src
+
 **** CMake
 #+begin_src emacs-lisp
 (use-package cmake-mode)
