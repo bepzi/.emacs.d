@@ -343,6 +343,17 @@ rust-src rustfmt=.
   (lambda () (setq comment-start "//" comment-end   "")))
 #+end_src
 
+***** LSP Integration
+
+Use =ccls= if available, otherwise do nothing (falling back to
+=clangd=)
+
+#+begin_src emacs-lisp
+(when (executable-find "ccls")
+  (use-package ccls
+    :config (setq ccl-executable (executable-find "ccls"))))
+#+end_src
+
 ***** =clang-format=
 Source code formatting with =clang-format=:
 
