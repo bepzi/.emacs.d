@@ -1,6 +1,6 @@
 #+TITLE: My Emacs configuration
 #+STARTUP: showeverything
-#+PROPERTY: header-args:emacs-lisp :tangle yes
+#+PROPERTY: header-args :cache yes :tangle yes :noweb yes
 
 * Emacs Config
 ** Initialization
@@ -91,6 +91,7 @@ Helm makes it easy to complete various things.
           (bind-key "C-x b" 'helm-mini)
           (bind-key "C-h f" 'helm-apropos)
           (bind-key "C-h r" 'helm-info-emacs)
+          (bind-key "C-c s" 'helm-grep-do-git-grep)
           (bind-key "C-h C-l" 'helm-locate-library))
 (helm-autoresize-mode t)
 (helm-mode 1)
