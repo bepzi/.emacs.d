@@ -19,6 +19,15 @@ redirect it to a file that is /not/ tracked by version control.
 #+end_src
 
 *** Add package repos
+
+Work around a bug in Emacs 26.2:
+https://old.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/
+
+#+begin_src emacs-lisp
+(if (version= emacs-version "26.2")
+  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3"))
+#+end_src
+
 #+begin_src emacs-lisp
 ;; Adds melpa and org mode repos unless already defined
 (unless (assoc-default "melpa" package-archives)
