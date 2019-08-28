@@ -61,6 +61,13 @@ after adding these for the first time.
 (use-package s)
 #+end_src
 
+It's nice to be able to enter my =sudo= password and edit read-only
+files. It's just an =M-x sudo-edit= away.
+
+#+begin_src emacs-lisp
+(use-package sudo-edit)
+#+end_src
+
 ** General Configuration
 =better-defaults= takes care of the majority of Emacs' papercuts.
 
