@@ -498,7 +498,7 @@ their =.clang-format= file.
 **** GLSL
 #+begin_src emacs-lisp
 (use-package glsl-mode
-  :mode ("\\.glsl$" "\\.glslv$" "\\.glslf$" "\\.vert$" "\\.frag$" "\\.geom$"))
+  :mode ("\\.glsl$" "\\.glslv$" "\\.glslf$" "\\.vert$" "\\.frag$" "\\.geom$" "\\.vs" "\\.fs"))
 #+end_src
 
 **** MIPS Assembly
