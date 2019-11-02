@@ -20,14 +20,6 @@ redirect it to a file that is /not/ tracked by version control.
 
 *** Add package repos
 
-Work around a bug in Emacs 26.2:
-https://old.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/
-
-#+begin_src emacs-lisp
-(if (version= emacs-version "26.2")
-  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3"))
-#+end_src
-
 #+begin_src emacs-lisp
 ;; Adds melpa and org mode repos unless already defined
 (unless (assoc-default "melpa" package-archives)
@@ -294,12 +286,6 @@ I currently only use Yasnippet for proper completion with
   :config (yas-global-mode))
 #+end_src
 
-**** OCaml
-
-#+begin_src emacs-lisp
-(use-package tuareg)
-#+end_src
-
 **** Bash
 For =flycheck= integration, install =shellcheck= (AUR:
 =shellcheck-git-static=)
@@ -318,12 +304,6 @@ JavaScript, so I disable needing a local =.eslintrc=.
 #+begin_src emacs-lisp
 (setq-default flycheck-eslint-args
   '("-c" ".eslintrc.json"))
-#+end_src
-
-**** TypeScript
-
-#+begin_src emacs-lisp
-(use-package typescript-mode)
 #+end_src
 
 **** JSON
@@ -428,75 +408,6 @@ defaults. Spaces rather than tabs, K&R-style brace placement.
                                 (other . "ben")))
 #+end_src
 
-****** Xournal++
-
-Code style to be used when contributing to [[https://github.com/xournalpp/xournalpp][Xournal++]], based off of
-their =.clang-format= file.
-
-#+begin_src emacs-lisp
-(c-add-style "xournalpp"
-             '("bsd"
-               (indent-tabs-mode . t)
-               (tab-width . 8)
-
-               (c-basic-offset . 8)     ; Guessed value
-               (c-offsets-alist
-                (access-label . 0)      ; Guessed value
-                (arglist-cont . 0)      ; Guessed value
-                (arglist-intro . +)     ; Guessed value
-                (block-close . 0)       ; Guessed value
-                (brace-entry-open . 0)  ; Guessed value
-                (brace-list-close . 0)  ; Guessed value
-                (brace-list-entry . 0)  ; Guessed value
-                (brace-list-intro . +)  ; Guessed value
-                (brace-list-open . 0)   ; Guessed value
-                (class-close . 0)       ; Guessed value
-                (class-open . 0)        ; Guessed value
-                (defun-block-intro . +) ; Guessed value
-                (defun-close . 0)       ; Guessed value
-                (defun-open . 0)        ; Guessed value
-                (else-clause . 0)       ; Guessed value
-                (inclass . +)           ; Guessed value
-                (inline-close . 0)      ; Guessed value
-                (member-init-cont . -2) ; Guessed value
-                (member-init-intro . 1) ; Guessed value
-                (statement . 0)             ; Guessed value
-                (statement-block-intro . +) ; Guessed value
-                (substatement-open . 0)     ; Guessed value
-                (topmost-intro . +)         ; Guessed value
-                (topmost-intro-cont . 0)))) ; Guessed value
-#+end_src
-
-****** Tsoding's Style
-
-#+begin_src emacs-lisp
-(c-add-style "tsoding"
-             '("k&r"
-               (indent-tabs-mode . nil)
-
-               (c-basic-offset . 4)     ; Guessed value
-               (c-offsets-alist
-                (arglist-cont . 0)      ; Guessed value
-                (arglist-intro . +)     ; Guessed value
-                (block-close . 0)       ; Guessed value
-                (brace-list-close . 0)  ; Guessed value
-                (brace-list-entry . 0)  ; Guessed value
-                (brace-list-intro . +)  ; Guessed value
-                (case-label . 0)        ; Guessed value
-                (class-close . 0)       ; Guessed value
-                (class-open . 0)        ; Guessed value
-                (defun-block-intro . +) ; Guessed value
-                (defun-close . 0)       ; Guessed value
-                (defun-open . 0)        ; Guessed value
-                (inclass . +)           ; Guessed value
-                (statement . 0)         ; Guessed value
-                (statement-block-intro . +) ; Guessed value
-                (statement-case-intro . +) ; Guessed value
-                (statement-cont . +)    ; Guessed value
-                (topmost-intro . 0)     ; Guessed value
-                (topmost-intro-cont . 0))))  ; Guessed value
-#+end_src
-
 **** CMake
 #+begin_src emacs-lisp
 (use-package cmake-mode)
@@ -506,18 +417,6 @@ their =.clang-format= file.
 #+begin_src emacs-lisp
 (use-package glsl-mode
   :mode ("\\.glsl$" "\\.glslv$" "\\.glslf$" "\\.vert$" "\\.frag$" "\\.geom$" "\\.vs" "\\.fs"))
-#+end_src
-
-**** MIPS Assembly
-#+begin_src emacs-lisp
-(use-package mips-mode
-  :mode "\\.mips$")
-#+end_src
-
-**** x86 Assembly
-#+begin_src emacs-lisp
-(use-package nasm-mode
-  :hook (asm-mode . nasm-mode))
 #+end_src
 
 *** Org Mode
