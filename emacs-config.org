@@ -276,6 +276,14 @@ LSP mode will automatically configure =company-lsp= and
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 #+end_src
 
+**** ccls
+
+#+begin_src emacs-lisp
+(use-package ccls
+  :hook ((c-mode c++-mode) .
+         (lambda () (require 'ccls) (lsp))))
+#+end_src
+
 **** Yasnippet
 I currently only use Yasnippet for proper completion with
 =company-lsp=.
