@@ -341,6 +341,12 @@ rust-src rustfmt=.
   :hook (rust-mode . lsp))
 #+end_src
 
+**** Haskell
+
+#+begin_src emacs-lisp
+(use-package haskell-mode)
+#+end_src
+
 **** C
 =M-;= produces (C99+) line comments rather than block comments.
 
