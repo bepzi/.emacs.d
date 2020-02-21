@@ -345,6 +345,9 @@ rust-src rustfmt=.
 
 #+begin_src emacs-lisp
 (use-package haskell-mode)
+
+(font-lock-add-keywords 'haskell-mode
+  '(("otherwise" . font-lock-keyword-face)))
 #+end_src
 
 **** C
