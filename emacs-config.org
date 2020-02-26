@@ -347,7 +347,8 @@ rust-src rustfmt=.
 (use-package haskell-mode)
 
 (font-lock-add-keywords 'haskell-mode
-  '(("otherwise" . font-lock-keyword-face)))
+  '(("otherwise" . font-lock-keyword-face)
+    ("undefined" . font-lock-warning-face)))
 #+end_src
 
 **** C
