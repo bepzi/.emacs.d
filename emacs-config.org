@@ -256,7 +256,7 @@ Autocompletion framework for Emacs
   (company-minimum-prefix-length 2)
   (company-show-numbers nil)
   (company-tooltip-align-annotations 't)
-  (global-company-mode t))
+  (global-company-mode nil))
 #+end_src
 
 **** Language Server Protocol (LSP)
@@ -266,10 +266,12 @@ LSP mode will automatically configure =company-lsp= and
 #+begin_src emacs-lisp
 (use-package lsp-mode
   :commands lsp
+  :hook (rust-mode . lsp)
   :config (setq lsp-auto-configure t)
           (setq lsp-enable-completion-at-point t)
           (setq lsp-enable-snippet t)
-          (setq lsp-prefer-flymake nil))
+          (setq lsp-prefer-flymake nil)
+          (setq lsp-rust-server 'rust-analyzer))
 
 (use-package lsp-ui :commands lsp-ui-mode)
 (use-package company-lsp :commands company-lsp)
