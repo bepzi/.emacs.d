@@ -1,502 +1,334 @@
-#+TITLE: My Emacs configuration
+#+TITLE: emacs.d
 #+STARTUP: showeverything
 #+PROPERTY: header-args :cache yes :tangle yes :noweb yes
 
-* Emacs Config
-** Initialization
-#+begin_src emacs-lisp
-(package-initialize)
+** Early init
+
+=package-initialize= should be called first, even though we do package
+management stuff later.
+
+#+begin_src elisp
+  (package-initialize)
 #+end_src
 
-*** Customize output file
-I don't want stuff added by Customize to show up in =init.el=, so I
-redirect it to a file that is /not/ tracked by version control.
+By default, stuff added by Customize will show up in =init.el=, or
+whatever is specified by =C-h v user-init-file=. We want our =init.el=
+to remain simple and uncluttered, and we don't want it to contain
+changes that would show up in version control.
 
-#+begin_src emacs-lisp
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+#+begin_src elisp
+  (setq custom-file (concat user-emacs-directory "custom.el"))
   (when (file-exists-p custom-file)
-     (load custom-file :noerror))
+    (load custom-file :noerror))
 #+end_src
 
-*** Add package repos
+** Package management
 
-#+begin_src emacs-lisp
-;; Adds melpa and org mode repos unless already defined
-(unless (assoc-default "melpa" package-archives)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
-(unless (assoc-default "org" package-archives)
-  (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t))
+#+begin_src elisp
+  (unless (assoc-default "melpa" package-archives)
+    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
+
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+  (setq use-package-verbose t)
+  (setq use-package-always-ensure t)
 #+end_src
 
-Use =M-x package-refresh-contents= to reload the list of packages
-after adding these for the first time.
+** Utility packages
 
-*** Set up automatic package installation
-#+begin_src emacs-lisp
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-(setq use-package-verbose t)
-(setq use-package-always-ensure t)
-(require 'use-package)
-
-;; Don't use outdated elisp bytecode
-(use-package auto-compile
-  :config (auto-compile-on-load-mode)
-          (setq load-prefer-newer t))
+#+begin_src elisp
+  (use-package diminish)
+  (use-package s)
 #+end_src
 
-*** Utility packages
-#+begin_src emacs-lisp
-(use-package bind-key)
-(use-package diminish)
-(use-package s)
+=sudo-edit= allows you to enter your =sudo= password and edit
+read-only files. Just invoke =M-x sudo-edit=.
+
+#+begin_src elisp
+  (use-package sudo-edit)
 #+end_src
 
-It's nice to be able to enter my =sudo= password and edit read-only
-files. It's just an =M-x sudo-edit= away.
+** Basic configuration
 
-#+begin_src emacs-lisp
-(use-package sudo-edit)
-#+end_src
+Some of these options were adapted nearly verbatim from [[https://github.com/technomancy/better-defaults][the
+better-defaults project]].
 
-** General Configuration
-=better-defaults= takes care of the majority of Emacs' papercuts.
-
-#+begin_src emacs-lisp
-(use-package better-defaults)
-#+end_src
-
-*** General Behavior
-**** Splash Screen
-Don't display the "Welcome to Emacs" stuff
-
-#+begin_src emacs-lisp
-(setq inhibit-startup-screen t)
-#+end_src
-
-**** Backups
 By default, Emacs saves backup files in the current directory. These
 are the files ending in =~= that are cluttering up your directory
 lists. The following code stashes them all in =~/.emacs.d/backups=,
 where I can find them with =C-x C-f= (=find-file=) if I really need
 to.
 
-#+begin_src emacs-lisp
-(setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
-(setq auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t)))
+#+begin_src elisp
+  (unless backup-directory-alist
+    (setq backup-directory-alist
+	  `(("." . ,(concat user-emacs-directory "backups")))))
+
+  (setq auto-save-file-name-transforms
+	`((".*" ,(concat user-emacs-directory "auto-save-list") t)))
 #+end_src
 
-**** Helm
-Helm makes it easy to complete various things.
-
-#+begin_src emacs-lisp
-(use-package helm
-  :diminish helm-mode
-  :config (bind-key "C-x C-f" 'helm-find-files)
-          (bind-key "M-x" 'helm-M-x)
-          (bind-key "M-y" 'helm-show-kill-ring)
-          (bind-key "C-x b" 'helm-mini)
-          (bind-key "C-h f" 'helm-apropos)
-          (bind-key "C-h r" 'helm-info-emacs)
-          (bind-key "C-c s" 'helm-grep-do-git-grep)
-          (bind-key "C-h C-l" 'helm-locate-library))
-(helm-autoresize-mode t)
-(helm-mode 1)
+#+begin_src elisp
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
 
-**** Delete trailing whitespace
-#+begin_src emacs-lisp
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+Change "yes or no" to "y or n", because it's less typing.
+
+#+begin_src elisp
+  (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
-**** Change "yes or no" to "y or n"
-Lazy people like me never want to type "yes" when "y" will suffice.
+Use =display-line-numbers-mode= if it exists (Emacs 26+), otherwise
+use the deprecated =linum-mode=.
 
-#+begin_src emacs-lisp
-(fset 'yes-or-no-p 'y-or-n-p)
+#+begin_src elisp
+  (if (fboundp 'global-display-line-numbers-mode)
+      (global-display-line-numbers-mode)
+    (global-linum-mode))
 #+end_src
 
-**** Line numbers
-As of Emacs 26, =linum-mode= is deprecated, to be replaced with
-=display-line-numbers-mode=.
+Don't display the "Welcome to Emacs" stuff, just start in the
+=*scratch*= buffer.
 
-#+begin_src emacs-lisp
-(when (< emacs-major-version 26)
-  (global-linum-mode))
-
-(when (>= emacs-major-version 26)
-  (global-display-line-numbers-mode)
-  (global-linum-mode -1))
+#+begin_src elisp
+  (setq inhibit-startup-screen t)
 #+end_src
 
-*** Appearance
-**** Font size
-My fonts suddenly became super tiny for some reason. This resets the
-default font height to 12pt, which should work for most devices.
+Disable scrollbars and the tacky titlebar.
 
-#+begin_src emacs-lisp
-(set-face-attribute 'default nil :height 112)
+#+begin_src elisp
+  (unless (eq window-system 'ns)
+    (menu-bar-mode -1))
+  (when (fboundp 'tool-bar-mode)
+    (tool-bar-mode -1))
+  (when (fboundp 'scroll-bar-mode)
+    (scroll-bar-mode -1))
+  (when (fboundp 'horizontal-scroll-bar-mode)
+    (horizontal-scroll-bar-mode -1))
 #+end_src
 
-**** Mode line format
-Display a more compact mode line.
+Use =ibuffer= for =C-x C-b=, which will sensibly replace the current
+buffer rather than forcing you to move your cursor to a completely
+different buffer when all you wanted to do was change the current
+buffer in the current frame, gosh darn it!
 
-#+begin_src emacs-lisp
-(use-package smart-mode-line
-  :config (setq sml/theme 'respectful)
-          (smart-mode-line-enable))
+#+begin_src elisp
+  (global-set-key (kbd "C-x C-b") 'ibuffer)
 #+end_src
 
-When using =emacs --daemon=, you may have to launch an actual instance
-of =emacs= (i.e, /not/ =emacsclient=) in order to correctly enable the
-new mode line theme.
+Prefer RegEx-aware search functions.
 
-**** Color scheme
-Don't forget to use Oomox (AUR: =oomox=, =oomox-git=) to set your
-systemwide icons and GTK+ themes to a matching color scheme.
-
-#+begin_src emacs-lisp
-(use-package base16-theme
-  :config (load-theme 'base16-gruvbox-dark-hard t))
+#+begin_src elisp
+  (global-set-key (kbd "C-s") 'isearch-forward-regexp)
+  (global-set-key (kbd "C-r") 'isearch-backward-regexp)
+  (global-set-key (kbd "C-M-s") 'isearch-forward)
+  (global-set-key (kbd "C-M-r") 'isearch-backward)
 #+end_src
 
-Again, you may have to launch an actual =emacs= instance in order to
-enable this theme for the first time.
-
-**** Time in the modeline
-#+begin_src emacs-lisp
-(display-time-mode 1)
+#+begin_src elisp
+  (show-paren-mode 1)
 #+end_src
 
-**** Magit
-#+begin_src emacs-lisp
-(use-package magit
-  :config (bind-key "C-x g" 'magit-status))
+#+begin_src elisp
+  (setq-default indent-tabs-mode nil)
 #+end_src
 
-*** Basic Editing
-**** Unfilling
+The following code will:
+
+ 1. Put externally-copied clipboard text in the kill buffer before
+    accidentally clobbering it.
+ 2. Make =apropos= commands search more extensively, even though it
+    might be slightly slower.
+ 3. Make the mouse yank at point, rather than at click.
+ 4. Ensure files have a final newline appended when they are saved.
+ 5. Flash the frame rather than ringing a "bell" to get your
+    attention.
+ 6. If there are multiple versions of the same file available to
+    =load=, it will prefer the newest version.
+ 7. Makes =ediff= display everything in a single frame rather than
+    creating a new one.
+
+#+begin_src elisp
+  (setq
+   save-interprogram-paste-before-kill t
+   apropos-do-all t
+   mouse-yank-at-point t
+   require-final-newline t
+   visible-bell t
+   load-prefer-newer t
+   ediff-window-setup-function 'ediff-setup-windows-plain)
+#+end_src
+
+** Appearance
+
+#+begin_src elisp
+  (use-package base16-theme
+    :config (load-theme 'base16-gruvbox-dark-hard t))
+#+end_src
+
+#+begin_src elisp
+  (use-package smart-mode-line
+    :config (setq sml/theme 'respectful)
+    (smart-mode-line-enable))
+#+end_src
+
+#+begin_src elisp
+  (display-time-mode 1)
+#+end_src
+
+Emacs font heights are specified in 1/10 pt, so multiply by 10 and you
+get 112 for 12 pt font.
+
+We also set some fallback fonts if we're on Windows, since Courier New
+is an abomination. We try [[https://github.com/adobe-fonts/source-code-pro][Source Code Pro]] and a few other decent
+monospace fonts that a developer might have installed. Failing that,
+we go with Consolas. Note that we're prepending in front of default
+fontset, so the final order will be =["Source Code Pro", ... ,
+"Consolas", "monospace"]=.
+
+We trust other operating systems to have a sane default system font.
+
+#+begin_src elisp
+  (set-face-attribute 'default nil :height 112)
+
+  (when (string-equal system-type "windows-nt")
+    (set-fontset-font t nil "Consolas" nil 'prepend)
+    (set-fontset-font t nil "Hack" nil 'prepend)
+    (set-fontset-font t nil "Roboto Mono" nil 'prepend)
+    (set-fontset-font t nil "Source Code Pro" nil 'prepend))
+#+end_src
+
+** General editing
+
+#+begin_src elisp
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+end_src
+
 It's a little strange that you can't readily undo =M-x
 fill-paragraph=. This command binds =M-Q= to be the inverse of =M-q=.
 
-#+begin_src emacs-lisp
-(defun my/unfill-paragraph (&optional region)
+#+begin_src elisp
+  (defun my/unfill-paragraph (&optional region)
     "Take a multi-line paragraph and make it into a single line of text."
     (interactive (progn (barf-if-buffer-read-only) (list t)))
     (let ((fill-column (point-max))) (fill-paragraph nil region)))
 
-(bind-key "M-Q" 'my/unfill-paragraph)
+  (global-set-key (kbd "M-Q") 'my/unfill-paragraph)
 #+end_src
 
-**** Multiple Cursors
-#+begin_src emacs-lisp
-(use-package multiple-cursors
-  :config (bind-key "C-S-c C-S-c" 'mc/edit-lines)
-          (bind-key "C->" 'mc/mark-next-like-this)
-          (bind-key "C-<" 'mc/mark-previous-like-this)
-          (bind-key "C-c C-<" 'mc/mark-all-like-this))
+#+begin_src elisp
+  (use-package multiple-cursors
+    :bind (("C-S-c C-S-c" . 'mc/edit-lines)
+           ("C->" . 'mc/mark-next-like-this)
+           ("C-<" . 'mc/mark-previous-like-this)
+           ("C-c C-<" . 'mc/mark-all-like-this)))
 #+end_src
 
-*** Programming/Markup Languages
-**** Man
-Enable colors.
+** Programming
 
-#+begin_src emacs-lisp
-;; https://emacs.stackexchange.com/a/28925
-(require 'man)
-(set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
-(set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t)
+#+begin_src elisp
+  (use-package magit
+    :bind ("C-x g" . 'magit-status))
 #+end_src
 
-**** Compilation
-Enable ANSI color interpretation in the compilation buffer.
+Enable colors for =man= pages. See [[https://emacs.stackexchange.com/a/28925][here]].
 
-#+begin_src emacs-lisp
-;; https://stackoverflow.com/a/3072831
-(require 'ansi-color)
-(defun colorize-compilation-buffer ()
-  (let ((inhibit-read-only t))
-    (ansi-color-apply-on-region (point-min) (point-max))))
-(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+#+begin_src elisp
+  (require 'man)
+  (set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
+  (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t)
 #+end_src
 
-Scroll with the compilation output.
+Enable ANSI color interpretation in the compilation buffer. See [[https://stackoverflow.com/a/3072831][here]].
 
-#+begin_src emacs-lisp
-(setq compilation-scroll-output t)
+#+begin_src elisp
+  (require 'ansi-color)
+  (defun colorize-compilation-buffer ()
+    (let ((inhibit-read-only t))
+      (ansi-color-apply-on-region (point-min) (point-max))))
+  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 #+end_src
 
-**** LaTeX
-#+begin_src emacs-lisp
-(use-package tex-mode
-  :ensure auctex)
+Make the compilation buffer scroll with its output.
+
+#+begin_src elisp
+  (setq compilation-scroll-output t)
 #+end_src
 
-**** Markdown
-#+begin_src emacs-lisp
-(use-package markdown-mode
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "multimarkdown"))
+#+begin_src elisp
+  (use-package tex-mode
+    :ensure auctex)
 #+end_src
 
-**** Company
-Autocompletion framework for Emacs
-
-#+begin_src emacs-lisp
-(use-package company
-  :defer t
-  :diminish
-  :custom
-  (company-begin-commands '(self-insert-command))
-  (company-idle-delay .2)
-  (company-minimum-prefix-length 2)
-  (company-show-numbers nil)
-  (company-tooltip-align-annotations 't)
-  (global-company-mode nil))
+#+begin_src elisp
+  (use-package markdown-mode
+    :commands (markdown-mode gfm-mode)
+    :mode (("README\\.md\\'" . gfm-mode)
+           ("\\.md\\'" . markdown-mode)
+           ("\\.markdown\\'" . markdown-mode))
+    :init (setq markdown-command "multimarkdown"))
 #+end_src
 
-**** Language Server Protocol (LSP)
-LSP mode will automatically configure =company-lsp= and
-=lsp-ui=.
-
 #+begin_src emacs-lisp
-(use-package lsp-mode
-  :commands lsp
-  :hook (rust-mode . lsp)
-  :config (setq lsp-auto-configure t)
-          (setq lsp-enable-completion-at-point t)
-          (setq lsp-enable-snippet t)
-          (setq lsp-prefer-flymake nil)
-          (setq lsp-rust-server 'rust-analyzer))
-
-(use-package lsp-ui :commands lsp-ui-mode)
-(use-package company-lsp :commands company-lsp)
-(use-package helm-lsp :commands helm-lsp-workspace-symbol)
+  (use-package json-mode)
 #+end_src
 
-**** ccls
-
-#+begin_src emacs-lisp
-(use-package ccls
-  :hook ((c-mode c++-mode) .
-         (lambda () (require 'ccls) (lsp))))
+#+begin_src elisp
+  (use-package yaml-mode)
 #+end_src
 
-**** Yasnippet
-I currently only use Yasnippet for proper completion with
-=company-lsp=.
-
-#+begin_src emacs-lisp
-(use-package yasnippet
-  :diminish
-  :config (yas-global-mode))
+#+begin_src elisp
+  (use-package toml-mode)
 #+end_src
 
-**** Bash
-For =flycheck= integration, install =shellcheck= (AUR:
-=shellcheck-git-static=)
-
-***** Arch Linux PKGBUILDS
-A =PKGBUILD= should be treated like a shell script.
-
-#+begin_src emacs-lisp
-(add-to-list 'auto-mode-alist '("PKGBUILD\\'" . shell-script-mode))
+#+begin_src elisp
+  (use-package cmake-mode)
 #+end_src
 
-**** JavaScript/ECMAScript
-For =flycheck= integration, install =eslint=. I don't really work in
-JavaScript, so I disable needing a local =.eslintrc=.
-
-#+begin_src emacs-lisp
-(setq-default flycheck-eslint-args
-  '("-c" ".eslintrc.json"))
+#+begin_src elisp
+  (use-package glsl-mode
+    :mode ("\\.glsl$" "\\.glslv$" "\\.glslf$" "\\.vert$" "\\.frag$" "\\.geom$" "\\.vs" "\\.fs"))
 #+end_src
 
-**** JSON
-Use =json-mode= when editing Reddit Enhancement Suite backup files.
+Arch Linux PKGBUILDs should be treated like normal shell scripts.
 
-#+begin_src emacs-lisp
-(use-package json-mode
-  :mode "\\.resbackup$")
+#+begin_src elisp
+  (add-to-list 'auto-mode-alist '("PKGBUILD\\'" . shell-script-mode))
 #+end_src
 
-**** YAML
-#+begin_src emacs-lisp
-(use-package yaml-mode)
+Make =M-;= produce C99+ line comments rather than block comments.
+
+#+begin_src elisp
+  (add-hook 'c-mode-hook
+            (lambda () (setq comment-start "//" comment-end "")))
 #+end_src
 
-**** TOML
-#+begin_src emacs-lisp
-(use-package toml-mode)
+Use =clang-format= to format C/C++ source code. This relies on there
+being a =.clang-format= file somewhere in or above the current
+directory. You can generate one based on the default styles with a
+command like =clang-format -style=llvm -dump-config > .clang-format=,
+and then tweak it to suit your needs.
+
+The keybinding will only be available in [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][CC Mode]] buffers. Note that we
+defer adding the binding to =c-mode-base-map= until after
+=c-initialization-hook= is run; otherwise, that variable won't be
+defined.
+
+#+begin_src elisp
+  (use-package clang-format
+    :hook (c-initialization . (lambda () (define-key c-mode-base-map (kbd "C-c C-f") 'clang-format-buffer))))
 #+end_src
 
-**** Rust
-Run =rustup update stable= and =rustup component add rls rust-analysis
-rust-src rustfmt=.
-
-#+begin_src emacs-lisp
-(use-package rust-mode
-  :hook (rust-mode . lsp))
+#+begin_src elisp
+  (use-package rust-mode)
 #+end_src
 
-**** Haskell
+#+begin_src elisp
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook ((rust-mode c-mode c++-mode) . lsp-deferred)
+    :config (setq lsp-rust-server 'rust-analyzer))
 
-#+begin_src emacs-lisp
-(use-package haskell-mode)
-
-(font-lock-add-keywords 'haskell-mode
-  '(("otherwise" . font-lock-keyword-face)
-    ("undefined" . font-lock-warning-face)))
-#+end_src
-
-**** C
-=M-;= produces (C99+) line comments rather than block comments.
-
-#+begin_src emacs-lisp
-(add-hook 'c-mode-hook
-  (lambda () (setq comment-start "//" comment-end   "")))
-#+end_src
-
-***** LSP Integration
-
-Use =ccls= if available, otherwise do nothing (falling back to
-=clangd=)
-
-#+begin_src emacs-lisp
-(when (executable-find "ccls")
-  (use-package ccls
-    :config (setq ccl-executable (executable-find "ccls"))))
-#+end_src
-
-***** =clang-format=
-Source code formatting with =clang-format=:
-
-#+begin_src emacs-lisp
-(use-package clang-format
-  :config (bind-key "C-c C-f" 'clang-format-region))
-#+end_src
-
-This relies on there being a =.clang-format= file somewhere in or
-above the current directory. You can generate one based off of the
-default styles with a command like =clang-format -style=llvm
--dump-config > .clang-format=, and then further tweak it using a
-website like [[https://www.clangformat.com/][this one]].
-
-***** Code Styles
-
-See: https://stackoverflow.com/a/39907217 for a novel way of
-generating these style settings. Works best if you already have a
-=.clang-format= to enforce the style with.
-
-****** The One True C/C++ Code Style
-
-...my own personal coding style, loosely based on Rust's
-defaults. Spaces rather than tabs, K&R-style brace placement.
-
-#+begin_src emacs-lisp
-(c-add-style "ben"
-             '("k&r"
-               (indent-tabs-mode . nil)
-
-               (c-basic-offset . 4)     ; Guessed value
-               (c-offsets-alist
-                (access-label . 0)      ; Guessed value
-                (arglist-cont . 0)      ; Guessed value
-                (arglist-intro . +)     ; Guessed value
-                (block-close . 0)       ; Guessed value
-                (case-label . 0)        ; Guessed value
-                (class-close . 0)       ; Guessed value
-                (defun-block-intro . +) ; Guessed value
-                (defun-close . 0)       ; Guessed value
-                (inclass . +)           ; Guessed value
-                (inline-close . 0)      ; Guessed value
-                (member-init-cont . 0)  ; Guessed value
-                (member-init-intro . +) ; Guessed value
-                (statement . 0)             ; Guessed value
-                (statement-block-intro . +) ; Guessed value
-                (statement-case-intro . +) ; Guessed value
-                (statement-cont . +)       ; Guessed value
-                (topmost-intro . 0)        ; Guessed value
-                (topmost-intro-cont . 0)))) ; Guessed value
-
-(setq-default c-default-style '((java-mode . "java")
-                                (awk-mode . "awk")
-                                (other . "ben")))
-#+end_src
-
-**** CMake
-#+begin_src emacs-lisp
-(use-package cmake-mode)
-#+end_src
-
-**** GLSL
-#+begin_src emacs-lisp
-(use-package glsl-mode
-  :mode ("\\.glsl$" "\\.glslv$" "\\.glslf$" "\\.vert$" "\\.frag$" "\\.geom$" "\\.vs" "\\.fs"))
-#+end_src
-
-*** Org Mode
-Export =.org= files to Markdown and Github-Flavored Markdown:
-
-#+begin_src emacs-lisp
-(eval-after-load "org"
-  '(require 'ox-md nil t))
-
-(use-package ox-gfm
-  :config (eval-after-load "org"
-            '(require 'ox-gfm nil t)))
-#+end_src
-
-**** Org Agenda
-#+begin_src emacs-lisp
-(bind-key "C-c l" 'org-store-link)
-(bind-key "C-c a" 'org-agenda)
-(bind-key "C-c c" 'org-capture)
-
-(setq org-agenda-files '("~/decrypted/org"))
-
-;; Include general recurring info (holidays, etc.) in Agenda
-(setq org-agenda-include-diary t)
-
-;; Show days that don't have anything scheduled on them
-(setq org-agenda-show-all-dates t)
-
-;; Don't show tasks as scheduled if they are already shown as a deadline
-(setq org-agenda-skip-scheduled-if-deadline-is-shown t)
-
-;; Always open Agenda to replace the current window
-(setq org-agenda-window-setup (quote current-window))
-
-;; Hide deadline/scheduled tasks if they're done
-(setq org-agenda-skip-deadline-if-done t)
-(setq org-agenda-skip-scheduled-if-done t)
-
-;; Begin the agenda view on the current day, not Sunday
-(setq org-agenda-start-on-weekday nil)
-
-(setq org-log-done 'time)
-
-(setq org-capture-templates
-  '(("t" "Add a task to the TODO list." entry
-     (file+headline "~/decrypted/org/tasks.org" "Tasks")
-     "* TODO %? %t")
-    ("a" "Add an upcoming date to the calendar." entry
-     (file+headline "~/decrypted/org/calendar.org" "Calendar")
-     "* %? %t")
-    ("s" "Add an entry to the \"Some Day\" category." entry
-     (file+headline "~/decrypted/org/someday.org" "Some Day")
-     "* %?")))
-#+end_src
-
-**** Org Journal
-#+begin_src emacs-lisp
-(use-package org-journal
-  :defer t
-  :custom (org-journal-dir "~/decrypted/org/journal")
-          (org-journal-file-type "monthly")
-          (org-journal-start-on-weekday nil))
+  (use-package lsp-ui :commands lsp-ui-mode)
 #+end_src

@@ -2,5 +2,6 @@
 !.gitignore
 !init.el
 !emacs-config.org
+!emacs.desktop
 !LICENSE
 !README.md
