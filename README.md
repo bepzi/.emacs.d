@@ -1,5 +1,7 @@
 ## emacs.d
 
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://opensource.org/licenses/GPL-3.0)
+
 My configuration files for GNU Emacs, tested on Linux and Windows.
 
 It requires the function `org-babel-load-file` to be present,
@@ -27,15 +29,15 @@ That's it!
 
 #### Daemon mode with `emacsclient`
 
-If you're on Linux with `systemd`, I also recommend installing a user
-service that launches Emacs in daemon mode, then adding a `.desktop`
-file that launches `emacsclient` instead of `emacs`.
+If you're on **Linux** with `systemd`, I also recommend installing a
+user service that launches Emacs in daemon mode, and then also adding
+a `.desktop` file that launches `emacsclient` instead of `emacs`:
 
  - Enable the `systemd` service. This comes bundled with Emacs 26+,
  but in case you don't already have it, just add this file as
  `~/.config/systemd/user/default.target.wants/emacs.service`:
 
-```text
+```ini
 [Unit]
 Description=Emacs text editor
 Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
@@ -56,9 +58,28 @@ WantedBy=default.target
  - Run `systemctl --user enable --now emacs.service`.
 
  - Copy `emacs.desktop`, which is in this repo, to
-   `~/.local/share/applications/emacs.desktop`.
+   `~/.local/share/applications/emacs.desktop`. This will make
+   `emacsclient` take precedence over `emacs` when you try to start
+   Emacs through a GUI application launcher.
 
  - Launch Emacs through some sort of GUI launcher. `emacsclient`
    should open instead of `emacs`; you'll know if it worked if the
    window appears instantly. Note that invoking `emacs` in the
    terminal will still load a fresh instance of Emacs, the slow way.
+
+If you're on **Windows**, you'll want to do the following:
+
+ - Press `Win + R`, type `shell:startup`, then press Enter.
+
+ - Right-click -> New -> Shortcut, then set the location to
+   `"C:\Users\<User>\Path\To\Emacs\bin\runemacs.exe" --daemon` (the
+   quotes are important.) You can name the shortcut whatever you like,
+   and I also recommend changing the starting directory to your home
+   folder. Double-click it to start the server now without having to
+   restart your computer.
+
+ - In a different folder (not the `shell:startup` folder), create
+   another shortcut, but this time to
+   `"C:\Users\<User>\Path\To\Emacs\bin\emacsclientw.exe" -c -n -a
+   "C:\Users\<User>\Path\To\Emacs\bin\runemacs.exe"`. You'll probably
+   want to pin this one to your taskbar.

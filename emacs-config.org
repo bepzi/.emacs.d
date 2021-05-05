@@ -2,6 +2,9 @@
 #+STARTUP: showeverything
 #+PROPERTY: header-args :cache yes :tangle yes :noweb yes
 
+This is my GNU Emacs config file. There are many like it, but this one
+is mine.
+
 ** Early init
 
 =package-initialize= should be called first, even though we do package
@@ -173,30 +176,19 @@ The following code will:
     (smart-mode-line-enable))
 #+end_src
 
-#+begin_src elisp
-  (display-time-mode 1)
-#+end_src
+Emacs font heights are specified in 1/10 pt, so multiply your desired
+point size by 10 and you get your Emacs font height.
 
-Emacs font heights are specified in 1/10 pt, so multiply by 10 and you
-get 112 for 12 pt font.
-
-We also set some fallback fonts if we're on Windows, since Courier New
-is an abomination. We try [[https://github.com/adobe-fonts/source-code-pro][Source Code Pro]] and a few other decent
-monospace fonts that a developer might have installed. Failing that,
-we go with Consolas. Note that we're prepending in front of default
-fontset, so the final order will be =["Source Code Pro", ... ,
-"Consolas", "monospace"]=.
-
-We trust other operating systems to have a sane default system font.
+We also change the default font if we're on Windows, because Courier
+New is an abomination. We trust other operating systems to have a sane
+default system font.
 
 #+begin_src elisp
-  (set-face-attribute 'default nil :height 112)
+  (set-face-attribute 'default nil :height 114)
 
   (when (string-equal system-type "windows-nt")
-    (set-fontset-font t nil "Consolas" nil 'prepend)
-    (set-fontset-font t nil "Hack" nil 'prepend)
-    (set-fontset-font t nil "Roboto Mono" nil 'prepend)
-    (set-fontset-font t nil "Source Code Pro" nil 'prepend))
+    (set-face-attribute 'default nil :family "Consolas")
+    (set-face-attribute 'fixed-pitch nil :family (face-attribute 'default :family)))
 #+end_src
 
 ** General editing
@@ -312,8 +304,8 @@ and then tweak it to suit your needs.
 
 The keybinding will only be available in [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][CC Mode]] buffers. Note that we
 defer adding the binding to =c-mode-base-map= until after
-=c-initialization-hook= is run; otherwise, that variable won't be
-defined.
+=c-initialization-hook= is run, because otherwise, that keymap won't
+be defined.
 
 #+begin_src elisp
   (use-package clang-format
