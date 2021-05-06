@@ -357,7 +357,7 @@ Markdown support, with special rules for when to prefer GitHub-flavored markdown
   (use-package markdown-mode
     :commands (markdown-mode gfm-mode)
     :mode (("README\\.md\\'" . gfm-mode)
-           (("\\.md\\'" "\\.markdown\\'" "\\.mdown\\'") . markdown-mode))
+           ("\\.(md|markdown|mdown)\\'" . markdown-mode))
     :config (setq markdown-command "multimarkdown"))
 #+end_src
 
