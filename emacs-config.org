@@ -54,7 +54,7 @@ Add MELPA package archives, and refresh/install [[https://github.com/jwiegley/us
 
 ** Utility packages
 
-[[https://github.com/myrjola/diminish.el][=diminish.el=]] hides modes (or abbreviates their names) from the modeline.
+[[https://github.com/myrjola/diminish.el][diminish.el]] hides modes (or abbreviates their names) from the modeline.
 
 #+begin_src elisp
   (use-package diminish
@@ -194,7 +194,7 @@ The following code will:
         ediff-window-setup-function 'ediff-setup-windows-plain)
 #+end_src
 
-[[https://github.com/justbur/emacs-which-key][=which-key=]] displays a list of available keybindings whenever you enter a partial command prefix. For example, if I press =C-x= and then give no more input, after a fraction of a second the minibuffer will open and show me everything that I can do with that prefix.
+[[https://github.com/justbur/emacs-which-key][which-key]] displays a list of available keybindings whenever you enter a partial command prefix. For example, if I press =C-x= and then give no more input, after a fraction of a second the minibuffer will open and show me everything that I can do with that prefix.
 
 Knowing what's even possible with this editor is critical to understanding how to use it effectively. If you don't know what keybindings exist, how will you ever know when to use them? I wish I had installed this package sooner.
 
@@ -204,7 +204,7 @@ Knowing what's even possible with this editor is critical to understanding how t
     :config (which-key-mode))
 #+end_src
 
-[[https://github.com/raxod502/selectrum][=selectrum=]] is an alternative to Helm, Ido, and Ivy for making incremental, narrowing selections. I'm just trying it out for now. The vanilla Emacs completion UI is a bit lackluster, so this package helps with selecting items -- files, buffers, commands, etc. -- from lists. It sounds mundane when you describe it that way, but good selection UIs are crucial for a pleasant editor experience.
+[[https://github.com/raxod502/selectrum][selectrum]] is an alternative to Helm, Ido, and Ivy for making incremental, narrowing selections. I'm just trying it out for now. The vanilla Emacs completion UI is a bit lackluster, so this package helps with selecting items -- files, buffers, commands, etc. -- from lists. It sounds mundane when you describe it that way, but good selection UIs are crucial for a pleasant editor experience.
 
 It also uses the standard Emacs APIs, so there's no further configuration necessary like in Helm. Just install, enable the mode, and it's there. I'm not using any of its companion packages, like =prescient= or =consult=, until I decide I need them.
 
