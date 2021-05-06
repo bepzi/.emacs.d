@@ -36,6 +36,9 @@ changes that would show up in version control.
 
 ** Package management
 
+Add MELPA package archives, and refresh/install =use-package= if it's
+not already available.
+
 #+begin_src elisp
   (unless (assoc-default "melpa" package-archives)
     (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
@@ -49,16 +52,19 @@ changes that would show up in version control.
 
 ** Utility packages
 
+=diminish= hides modes (or abbreviates their names) from the modeline.
+
 #+begin_src elisp
   (use-package diminish)
-  (use-package s)
+  (diminish 'eldoc-mode)
 #+end_src
 
 =sudo-edit= allows you to enter your =sudo= password and edit
-read-only files. Just invoke =M-x sudo-edit=.
+(shocking, I know!) read-only files. Just invoke =M-x sudo-edit=.
 
 #+begin_src elisp
-  (use-package sudo-edit)
+  (use-package sudo-edit
+    :defer 0.5)
 #+end_src
 
 ** Basic configuration
@@ -81,10 +87,6 @@ to.
 	`((".*" ,(concat user-emacs-directory "auto-save-list") t)))
 #+end_src
 
-#+begin_src elisp
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)
-#+end_src
-
 Change "yes or no" to "y or n", because it's less typing.
 
 #+begin_src elisp
@@ -101,23 +103,11 @@ use the deprecated =linum-mode=.
 #+end_src
 
 Don't display the "Welcome to Emacs" stuff, just start in the
-=*scratch*= buffer.
+=*scratch*= buffer. Also, make the scratch buffer empty.
 
 #+begin_src elisp
-  (setq inhibit-startup-screen t)
-#+end_src
-
-Disable scrollbars and the tacky titlebar.
-
-#+begin_src elisp
-  (unless (eq window-system 'ns)
-    (menu-bar-mode -1))
-  (when (fboundp 'tool-bar-mode)
-    (tool-bar-mode -1))
-  (when (fboundp 'scroll-bar-mode)
-    (scroll-bar-mode -1))
-  (when (fboundp 'horizontal-scroll-bar-mode)
-    (horizontal-scroll-bar-mode -1))
+  (setq inhibit-startup-screen t
+        initial-scratch-message "")
 #+end_src
 
 Use =ibuffer= for =C-x C-b=, which will sensibly replace the current
@@ -138,9 +128,23 @@ Prefer RegEx-aware search functions.
   (global-set-key (kbd "C-M-r") 'isearch-backward)
 #+end_src
 
+Automatically refresh the buffer if the file is changed
+externally. It's a pain to run something like =clang-format= and then
+not get to see the updated buffer.
+
+#+begin_src elisp
+  (global-auto-revert-mode t)
+#+end_src
+
+Highlight pairs of parentheses.
+
 #+begin_src elisp
   (show-paren-mode 1)
 #+end_src
+
+Disables =indent-tabs-mode= by default, so that indentation never
+inserts tabs. Other buffers are still able to override this behavior
+if needed.
 
 #+begin_src elisp
   (setq-default indent-tabs-mode nil)
@@ -158,26 +162,53 @@ The following code will:
     attention.
  6. If there are multiple versions of the same file available to
     =load=, it will prefer the newest version.
- 7. Makes =ediff= display everything in a single frame rather than
+ 7. Make =ediff= display everything in a single frame rather than
     creating a new one.
 
 #+begin_src elisp
-  (setq
-   save-interprogram-paste-before-kill t
-   apropos-do-all t
-   mouse-yank-at-point t
-   require-final-newline t
-   visible-bell t
-   load-prefer-newer t
-   ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq save-interprogram-paste-before-kill t
+        apropos-do-all t
+        mouse-yank-at-point t
+        require-final-newline t
+        visible-bell t
+        load-prefer-newer t
+        ediff-window-setup-function 'ediff-setup-windows-plain)
+#+end_src
+
+Adds =which-key= for displaying available keybindings. Very useful for
+figuring out what's possible.
+
+#+begin_src elisp
+  (use-package which-key
+    :defer 0.5
+    :diminish
+    :config (which-key-mode))
 #+end_src
 
 ** Appearance
+
+Disable scrollbars and the tacky titlebar.
+
+#+begin_src elisp
+  (unless (eq window-system 'ns)
+    (menu-bar-mode -1))
+  (when (fboundp 'tool-bar-mode)
+    (tool-bar-mode -1))
+  (when (fboundp 'scroll-bar-mode)
+    (scroll-bar-mode -1))
+  (when (fboundp 'horizontal-scroll-bar-mode)
+    (horizontal-scroll-bar-mode -1))
+#+end_src
+
+Dark mode colorscheme.
 
 #+begin_src elisp
   (use-package base16-theme
     :config (load-theme 'base16-gruvbox-dark-hard t))
 #+end_src
+
+A simpler, distraction-free modeline that respects the current
+colorscheme.
 
 #+begin_src elisp
   (use-package smart-mode-line
@@ -193,7 +224,7 @@ New is an abomination. We trust other operating systems to have a sane
 default system font.
 
 #+begin_src elisp
-  (set-face-attribute 'default nil :height 114)
+  (set-face-attribute 'default nil :height 120)
 
   (when (string-equal system-type "windows-nt")
     (set-face-attribute 'default nil :family "Consolas")
@@ -201,6 +232,8 @@ default system font.
 #+end_src
 
 ** General editing
+
+Delete trailing whitespace when saving.
 
 #+begin_src elisp
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
@@ -218,6 +251,9 @@ fill-paragraph=. This command binds =M-Q= to be the inverse of =M-q=.
   (global-set-key (kbd "M-Q") 'my/unfill-paragraph)
 #+end_src
 
+=multiple-cursors= lets you select and edit multiple pieces of text at
+once. It's rad.
+
 #+begin_src elisp
   (use-package multiple-cursors
     :bind (("C-S-c C-S-c" . 'mc/edit-lines)
@@ -226,7 +262,19 @@ fill-paragraph=. This command binds =M-Q= to be the inverse of =M-q=.
            ("C-c C-<" . 'mc/mark-all-like-this)))
 #+end_src
 
+=undo-tree= makes navigating Emacs' undo/redo history a breeze. You
+can view the tree with =C-x u= by default.
+
+#+begin_src elisp
+  (use-package undo-tree
+    :defer 0.5
+    :diminish
+    :config (global-undo-tree-mode))
+#+end_src
+
 ** Programming
+
+=magit= is the best Git interface I've ever used.
 
 #+begin_src elisp
   (use-package magit
@@ -257,10 +305,16 @@ Make the compilation buffer scroll with its output.
   (setq compilation-scroll-output t)
 #+end_src
 
+LaTeX support.
+
 #+begin_src elisp
   (use-package tex-mode
+    :defer 0.5
     :ensure auctex)
 #+end_src
+
+Markdown support, with special rules for when to prefer
+GitHub-flavored markdown.
 
 #+begin_src elisp
   (use-package markdown-mode
@@ -268,24 +322,38 @@ Make the compilation buffer scroll with its output.
     :mode (("README\\.md\\'" . gfm-mode)
            ("\\.md\\'" . markdown-mode)
            ("\\.markdown\\'" . markdown-mode))
-    :init (setq markdown-command "multimarkdown"))
+    :config (setq markdown-command "multimarkdown"))
 #+end_src
+
+JSON support.
 
 #+begin_src emacs-lisp
-  (use-package json-mode)
+  (use-package json-mode
+    :defer 0.5)
 #+end_src
 
-#+begin_src elisp
-  (use-package yaml-mode)
-#+end_src
+YAML support.
 
 #+begin_src elisp
-  (use-package toml-mode)
+  (use-package yaml-mode
+    :defer 0.5)
 #+end_src
 
+TOML support.
+
 #+begin_src elisp
-  (use-package cmake-mode)
+  (use-package toml-mode
+    :defer 0.5)
 #+end_src
+
+CMake support.
+
+#+begin_src elisp
+  (use-package cmake-mode
+    :defer 0.5)
+#+end_src
+
+OpenGL shader language support.
 
 #+begin_src elisp
   (use-package glsl-mode
@@ -321,9 +389,16 @@ be defined.
     :hook (c-initialization . (lambda () (define-key c-mode-base-map (kbd "C-c C-f") 'clang-format-buffer))))
 #+end_src
 
+Rust support.
+
 #+begin_src elisp
-  (use-package rust-mode)
+  (use-package rust-mode
+    :defer 0.5)
 #+end_src
+
+Language server protocol client, and its associated UIs. By default,
+try to use =rust-analyzer= (rather than the older RLS) as the default
+LSP implementation for Rust code.
 
 #+begin_src elisp
   (use-package lsp-mode
