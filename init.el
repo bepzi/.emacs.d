@@ -18,6 +18,8 @@
           (org-babel-load-file (car config-files))
 
         (error "%s" "Couldn't find exactly one 'config.org' \
-file in the same directory as 'init.el'"))))
+file in the same directory as init.el"))))
+
+(message "init.el loaded in %s\n" (emacs-init-time))
 
 ;;; init.el ends here
