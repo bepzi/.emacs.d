@@ -14,6 +14,15 @@ management stuff later.
   (package-initialize)
 #+end_src
 
+Temporarily increase the number of bytes of cons'ing we can do before
+garbage collection kicks in. We don't want to run the GC until after
+we finish initializing.
+
+#+begin_src elisp
+  (setq gc-cons-threshold 100000000)
+  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 800000)))
+#+end_src
+
 By default, stuff added by Customize will show up in =init.el=, or
 whatever is specified by =C-h v user-init-file=. We want our =init.el=
 to remain simple and uncluttered, and we don't want it to contain
