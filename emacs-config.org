@@ -2,31 +2,24 @@
 #+STARTUP: showeverything
 #+PROPERTY: header-args :cache yes :tangle yes :noweb yes
 
-This is my GNU Emacs config file. There are many like it, but this one
-is mine.
+This is my GNU Emacs config file. There are many like it, but this one is mine.
 
 ** Early init
 
-=package-initialize= should be called first, even though we do package
-management stuff later.
+=package-initialize= should be called first, even though we do package management stuff later.
 
 #+begin_src elisp
   (package-initialize)
 #+end_src
 
-Temporarily increase the number of bytes of cons'ing we can do before
-garbage collection kicks in. We don't want to run the GC until after
-we finish initializing.
+Temporarily increase the number of bytes of cons'ing we can do before garbage collection kicks in. We don't want to run the GC until after we finish initializing.
 
 #+begin_src elisp
   (setq gc-cons-threshold 100000000)
   (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 800000)))
 #+end_src
 
-By default, stuff added by Customize will show up in =init.el=, or
-whatever is specified by =C-h v user-init-file=. We want our =init.el=
-to remain simple and uncluttered, and we don't want it to contain
-changes that would show up in version control.
+By default, stuff added by Customize will show up in =init.el=, or whatever is specified by =C-h v user-init-file=. We want our =init.el= to remain simple and uncluttered, and we don't want it to contain changes that would show up in version control.
 
 #+begin_src elisp
   (setq custom-file (concat user-emacs-directory "custom.el"))
@@ -34,10 +27,19 @@ changes that would show up in version control.
     (load custom-file :noerror))
 #+end_src
 
+If I need to, I can define variables containing sensitive information and put them into a separate file that shouldn't be checked into version control. My =.gitignore= for this repo blacklists all files except for the ones I choose to commit, and =secrets.el= is not one of them.
+
+This does mean that I need to remember to print an error message for myself if I forget to define anything that I use later in this file.
+
+#+begin_src elisp
+  (let ((secrets-file (concat user-emacs-directory "secrets.el")))
+    (when (file-exists-p secrets-file)
+      (load secrets-file :noerror)))
+#+end_src
+
 ** Package management
 
-Add MELPA package archives, and refresh/install =use-package= if it's
-not already available.
+Add MELPA package archives, and refresh/install [[https://github.com/jwiegley/use-package][=use-package=]] if it's not already available.
 
 #+begin_src elisp
   (unless (assoc-default "melpa" package-archives)
@@ -52,39 +54,57 @@ not already available.
 
 ** Utility packages
 
-=diminish= hides modes (or abbreviates their names) from the modeline.
+[[https://github.com/myrjola/diminish.el][=diminish.el=]] hides modes (or abbreviates their names) from the modeline.
 
 #+begin_src elisp
-  (use-package diminish)
-  (diminish 'eldoc-mode)
+  (use-package diminish
+    :config (diminish 'eldoc-mode))
 #+end_src
 
-=sudo-edit= allows you to enter your =sudo= password and edit
-(shocking, I know!) read-only files. Just invoke =M-x sudo-edit=.
+=sudo-edit= allows you to enter your =sudo= password and edit (shocking, I know!) read-only files. Just invoke =M-x sudo-edit=.
 
 #+begin_src elisp
   (use-package sudo-edit
     :defer 0.5)
 #+end_src
 
-** Basic configuration
+** General behavior
 
-Some of these options were adapted nearly verbatim from [[https://github.com/technomancy/better-defaults][the
-better-defaults project]].
-
-By default, Emacs saves backup files in the current directory. These
-are the files ending in =~= that are cluttering up your directory
-lists. The following code stashes them all in =~/.emacs.d/backups=,
-where I can find them with =C-x C-f= (=find-file=) if I really need
-to.
+By default, Emacs saves backup files in the current directory. These are the files ending in =~= that are cluttering up your directory lists. The following code stashes them all in =~/.emacs.d/backups=, where I can find them with =C-x C-f= (=find-file=) if I really need to.
 
 #+begin_src elisp
   (unless backup-directory-alist
     (setq backup-directory-alist
-	  `(("." . ,(concat user-emacs-directory "backups")))))
+          `(("." . ,(concat user-emacs-directory "backups")))))
 
   (setq auto-save-file-name-transforms
-	`((".*" ,(concat user-emacs-directory "auto-save-list") t)))
+        `((".*" ,(concat user-emacs-directory "auto-save-list") t)))
+#+end_src
+
+Disable the creation of lockfiles, since I never have multiple users accessing the same instance of Emacs at the same time.
+
+#+begin_src elisp
+  (setq create-lockfiles nil)
+#+end_src
+
+Whenever I'm in =text-mode=, visually wrap lines without actually breaking them like =auto-fill-mode= would.
+
+#+begin_src elisp
+  (remove-hook 'text-mode-hook #'turn-on-auto-fill)
+  (add-hook 'text-mode-hook 'turn-on-visual-line-mode)
+#+end_src
+
+Whenever I open a buffer, or do anything really, assume I want UTF-8 encoding instead of something silly like Latin-1.
+
+#+begin_src elisp
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (when (display-graphic-p)
+    (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
 #+end_src
 
 Change "yes or no" to "y or n", because it's less typing.
@@ -93,8 +113,13 @@ Change "yes or no" to "y or n", because it's less typing.
   (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
-Use =display-line-numbers-mode= if it exists (Emacs 26+), otherwise
-use the deprecated =linum-mode=.
+If I start typing while I have a selection active, delete the selection like every other editor does.
+
+#+begin_src elisp
+  (delete-selection-mode t)
+#+end_src
+
+Use =display-line-numbers-mode= if it exists (Emacs 26+), otherwise use the deprecated =linum-mode=.
 
 #+begin_src elisp
   (if (fboundp 'global-display-line-numbers-mode)
@@ -102,24 +127,22 @@ use the deprecated =linum-mode=.
     (global-linum-mode))
 #+end_src
 
-Don't display the "Welcome to Emacs" stuff, just start in the
-=*scratch*= buffer. Also, make the scratch buffer empty.
+Don't display the "Welcome to Emacs" stuff, just start in the =*scratch*= buffer. Also, make the scratch buffer empty.
 
 #+begin_src elisp
   (setq inhibit-startup-screen t
-        initial-scratch-message "")
+        initial-scratch-message nil)
 #+end_src
 
-Use =ibuffer= for =C-x C-b=, which will sensibly replace the current
-buffer rather than forcing you to move your cursor to a completely
-different buffer when all you wanted to do was change the current
-buffer in the current frame, gosh darn it!
+(Some of these options were adapted nearly verbatim from [[https://github.com/technomancy/better-defaults][the better-defaults project]].)
+
+Use =ibuffer= for =C-x C-b=, which will sensibly replace the current buffer rather than forcing you to move your cursor to a completely different buffer when all you wanted to do was change the current buffer in the current frame, gosh darn it!
 
 #+begin_src elisp
   (global-set-key (kbd "C-x C-b") 'ibuffer)
 #+end_src
 
-Prefer RegEx-aware search functions.
+Prefer RegEx-aware search functions. The originals are still available via the =C-M= prefix.
 
 #+begin_src elisp
   (global-set-key (kbd "C-s") 'isearch-forward-regexp)
@@ -128,9 +151,7 @@ Prefer RegEx-aware search functions.
   (global-set-key (kbd "C-M-r") 'isearch-backward)
 #+end_src
 
-Automatically refresh the buffer if the file is changed
-externally. It's a pain to run something like =clang-format= and then
-not get to see the updated buffer.
+Automatically refresh the buffer if the file is changed externally. It's a pain to run something like =clang-format= and then not get to see the updated buffer.
 
 #+begin_src elisp
   (global-auto-revert-mode t)
@@ -142,9 +163,7 @@ Highlight pairs of parentheses.
   (show-paren-mode 1)
 #+end_src
 
-Disables =indent-tabs-mode= by default, so that indentation never
-inserts tabs. Other buffers are still able to override this behavior
-if needed.
+Disables =indent-tabs-mode= by default, so that indentation never inserts tabs. Other buffers are still able to override this behavior if needed.
 
 #+begin_src elisp
   (setq-default indent-tabs-mode nil)
@@ -175,19 +194,36 @@ The following code will:
         ediff-window-setup-function 'ediff-setup-windows-plain)
 #+end_src
 
-Adds =which-key= for displaying available keybindings. Very useful for
-figuring out what's possible.
+[[https://github.com/justbur/emacs-which-key][=which-key=]] displays a list of available keybindings whenever you enter a partial command prefix. For example, if I press =C-x= and then give no more input, after a fraction of a second the minibuffer will open and show me everything that I can do with that prefix.
+
+Knowing what's even possible with this editor is critical to understanding how to use it effectively. If you don't know what keybindings exist, how will you ever know when to use them? I wish I had installed this package sooner.
 
 #+begin_src elisp
   (use-package which-key
-    :defer 0.5
     :diminish
     :config (which-key-mode))
 #+end_src
 
+[[https://github.com/raxod502/selectrum][=selectrum=]] is an alternative to Helm, Ido, and Ivy for making incremental, narrowing selections. I'm just trying it out for now. The vanilla Emacs completion UI is a bit lackluster, so this package helps with selecting items -- files, buffers, commands, etc. -- from lists. It sounds mundane when you describe it that way, but good selection UIs are crucial for a pleasant editor experience.
+
+It also uses the standard Emacs APIs, so there's no further configuration necessary like in Helm. Just install, enable the mode, and it's there. I'm not using any of its companion packages, like =prescient= or =consult=, until I decide I need them.
+
+Things I need to remember when I use this package:
+
+ - To navigate into a directory while finding a file, press =TAB= or
+   =C-i=, /not/ =RET=.
+
+It's disabled for older versions of Emacs, since according to the developers the way messages were displayed in the minibuffer was "unworkably bad."
+
+#+begin_src elisp
+  (when (>= emacs-major-version 27)
+    (use-package selectrum
+      :config (selectrum-mode +1)))
+#+end_src
+
 ** Appearance
 
-Disable scrollbars and the tacky titlebar.
+Disable scrollbars and the tacky menu bar. Without them, we can almost pretend this is a lean and modern editor!
 
 #+begin_src elisp
   (unless (eq window-system 'ns)
@@ -207,8 +243,7 @@ Dark mode colorscheme.
     :config (load-theme 'base16-gruvbox-dark-hard t))
 #+end_src
 
-A simpler, distraction-free modeline that respects the current
-colorscheme.
+A simpler, distraction-free modeline that respects the current colorscheme.
 
 #+begin_src elisp
   (use-package smart-mode-line
@@ -216,12 +251,9 @@ colorscheme.
     (smart-mode-line-enable))
 #+end_src
 
-Emacs font heights are specified in 1/10 pt, so multiply your desired
-point size by 10 and you get your Emacs font height.
+Emacs font heights are specified in 1/10 pt, so multiply your desired point size by 10 and you get your Emacs font height.
 
-We also change the default font if we're on Windows, because Courier
-New is an abomination. We trust other operating systems to have a sane
-default system font.
+We also change the default font if we're on Windows, because Courier New is an abomination. Consolas has been around since Windows Vista (circa 2007), so it ought to always be available. We trust other operating systems to have a sane default font.
 
 #+begin_src elisp
   (set-face-attribute 'default nil :height 120)
@@ -233,14 +265,23 @@ default system font.
 
 ** General editing
 
-Delete trailing whitespace when saving.
+Delete trailing whitespace when saving. The only time this gets in the way is when I'm editing someone else's poorly-formatted source code, and the stripped trailing whitespace shows up in version control.
 
 #+begin_src elisp
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
 
-It's a little strange that you can't readily undo =M-x
-fill-paragraph=. This command binds =M-Q= to be the inverse of =M-q=.
+Sentences in Emacs are defined to end with two spaces instead of one by default. This means that when I use a command like =M-a= or =M-e= (backward and forward sentence, respectively) or =M-k= (kill to end of sentence), I end up deleting the entire paragraph, because I never end sentences with two spaces. This code changes it to be one space, like I expect.
+
+The [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Sentences.html][GNU documentation]] notes that this may interfere with abbreviations, but I think this is an acceptable tradeoff. I'll never use sentence-based editing commands otherwise. In fact, I didn't even know about them until I saw it in [[https://pages.sachachua.com/.emacs.d/Sacha.html][someone else's]] config. I simply thought =M-e= moved to the end of the paragraph!
+
+Also, I really need to get into the habit of using =C-x DEL= to delete backwards to the beginning of the sentence. It's quite handy, but I'm not yet in the habit of reaching for the sentence-based text manipulation keybindings (because of the aforementioned double-space weirdness.)
+
+#+begin_src elisp
+  (setq sentence-end-double-space nil)
+#+end_src
+
+It's a little strange that you can't readily undo =M-x fill-paragraph=. This command binds =M-Q= to be the inverse of =M-q=.
 
 #+begin_src elisp
   (defun my/unfill-paragraph (&optional region)
@@ -251,8 +292,7 @@ fill-paragraph=. This command binds =M-Q= to be the inverse of =M-q=.
   (global-set-key (kbd "M-Q") 'my/unfill-paragraph)
 #+end_src
 
-=multiple-cursors= lets you select and edit multiple pieces of text at
-once. It's rad.
+=multiple-cursors= lets you select and edit multiple pieces of text at once. It's rad.
 
 #+begin_src elisp
   (use-package multiple-cursors
@@ -262,12 +302,10 @@ once. It's rad.
            ("C-c C-<" . 'mc/mark-all-like-this)))
 #+end_src
 
-=undo-tree= makes navigating Emacs' undo/redo history a breeze. You
-can view the tree with =C-x u= by default.
+=undo-tree= makes navigating Emacs' undo/redo history a breeze. You can view the tree with =C-x u= by default.
 
 #+begin_src elisp
   (use-package undo-tree
-    :defer 0.5
     :diminish
     :config (global-undo-tree-mode))
 #+end_src
@@ -309,19 +347,17 @@ LaTeX support.
 
 #+begin_src elisp
   (use-package tex-mode
-    :defer 0.5
+    :mode ("\\.(la)?tex\\'" . latex-mode)
     :ensure auctex)
 #+end_src
 
-Markdown support, with special rules for when to prefer
-GitHub-flavored markdown.
+Markdown support, with special rules for when to prefer GitHub-flavored markdown.
 
 #+begin_src elisp
   (use-package markdown-mode
     :commands (markdown-mode gfm-mode)
     :mode (("README\\.md\\'" . gfm-mode)
-           ("\\.md\\'" . markdown-mode)
-           ("\\.markdown\\'" . markdown-mode))
+           (("\\.md\\'" "\\.markdown\\'" "\\.mdown\\'") . markdown-mode))
     :config (setq markdown-command "multimarkdown"))
 #+end_src
 
@@ -329,60 +365,52 @@ JSON support.
 
 #+begin_src emacs-lisp
   (use-package json-mode
-    :defer 0.5)
+    :mode "\\.json\\'")
 #+end_src
 
 YAML support.
 
 #+begin_src elisp
   (use-package yaml-mode
-    :defer 0.5)
+    :mode "\\.ya?ml\\'")
 #+end_src
 
 TOML support.
 
 #+begin_src elisp
   (use-package toml-mode
-    :defer 0.5)
+    :mode "\\.toml\\'")
 #+end_src
 
 CMake support.
 
 #+begin_src elisp
   (use-package cmake-mode
-    :defer 0.5)
+    :mode "\\`CMakeLists\\.txt\\'")
 #+end_src
 
 OpenGL shader language support.
 
 #+begin_src elisp
   (use-package glsl-mode
-    :mode ("\\.glsl$" "\\.glslv$" "\\.glslf$" "\\.vert$" "\\.frag$" "\\.geom$" "\\.vs" "\\.fs"))
+    :mode ("\\.glsl(v|f)?\\'" "\\.vert\\'" "\\.frag\\'" "\\.geom\\'" "\\.(v|f)s\\'"))
 #+end_src
 
 Arch Linux PKGBUILDs should be treated like normal shell scripts.
 
 #+begin_src elisp
-  (add-to-list 'auto-mode-alist '("PKGBUILD\\'" . shell-script-mode))
+  (add-to-list 'auto-mode-alist '("\\`PKGBUILD\\'" . shell-script-mode))
 #+end_src
 
 Make =M-;= produce C99+ line comments rather than block comments.
 
 #+begin_src elisp
-  (add-hook 'c-mode-hook
-            (lambda () (setq comment-start "//" comment-end "")))
+  (add-hook 'c-mode-hook (lambda () (setq comment-start "//" comment-end "")))
 #+end_src
 
-Use =clang-format= to format C/C++ source code. This relies on there
-being a =.clang-format= file somewhere in or above the current
-directory. You can generate one based on the default styles with a
-command like =clang-format -style=llvm -dump-config > .clang-format=,
-and then tweak it to suit your needs.
+Use =clang-format= to format C/C++ source code. This relies on there being a =.clang-format= file somewhere in or above the current directory. You can generate one based on the default styles with a command like =clang-format -style=llvm -dump-config > .clang-format=, and then tweak it to suit your needs.
 
-The keybinding will only be available in [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][CC Mode]] buffers. Note that we
-defer adding the binding to =c-mode-base-map= until after
-=c-initialization-hook= is run, because otherwise, that keymap won't
-be defined.
+The keybinding will only be available in [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][CC Mode]] buffers. Note that we defer adding the binding to =c-mode-base-map= until after =c-initialization-hook= is run, because otherwise, that keymap won't be defined.
 
 #+begin_src elisp
   (use-package clang-format
@@ -393,18 +421,19 @@ Rust support.
 
 #+begin_src elisp
   (use-package rust-mode
-    :defer 0.5)
+    :mode ("\\.rs\\'" "\\.rust\\'"))
 #+end_src
 
-Language server protocol client, and its associated UIs. By default,
-try to use =rust-analyzer= (rather than the older RLS) as the default
-LSP implementation for Rust code.
+Language server protocol mode, and its associated UIs. By default, try to use =rust-analyzer= (rather than the older RLS) as the default LSP implementation for Rust code.
 
 #+begin_src elisp
   (use-package lsp-mode
     :commands (lsp lsp-deferred)
-    :hook ((rust-mode c-mode c++-mode) . lsp-deferred)
+    :hook (((rust-mode c-mode c++-mode) . lsp-deferred)
+           (lsp-mode . lsp-enable-which-key-integration))
     :config (setq lsp-rust-server 'rust-analyzer))
 
-  (use-package lsp-ui :commands lsp-ui-mode)
+  (use-package lsp-ui
+    :commands lsp-ui-mode
+    :after lsp-mode)
 #+end_src
