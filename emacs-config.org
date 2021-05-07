@@ -39,7 +39,7 @@ This does mean that I need to remember to print an error message for myself if I
 
 ** Package management
 
-Add MELPA package archives, and refresh/install [[https://github.com/jwiegley/use-package][=use-package=]] if it's not already available.
+Add MELPA package archives, and refresh/install [[https://github.com/jwiegley/use-package][use-package]] if it's not already available.
 
 #+begin_src elisp
   (unless (assoc-default "melpa" package-archives)
@@ -256,7 +256,7 @@ Emacs font heights are specified in 1/10 pt, so multiply your desired point size
 We also change the default font if we're on Windows, because Courier New is an abomination. Consolas has been around since Windows Vista (circa 2007), so it ought to always be available. We trust other operating systems to have a sane default font.
 
 #+begin_src elisp
-  (set-face-attribute 'default nil :height 120)
+  (set-face-attribute 'default nil :height 115)
 
   (when (string-equal system-type "windows-nt")
     (set-face-attribute 'default nil :family "Consolas")
