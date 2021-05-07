@@ -179,7 +179,7 @@ Highlight pairs of parentheses.
   (show-paren-mode 1)
 #+end_src
 
-Disables =indent-tabs-mode= by default, so that indentation never inserts tabs. Other buffers are still able to override this behavior if needed.
+Disables =indent-tabs-mode= by default, so that indentation never inserts tabs. Other buffers (probably just =makefile-mode=) are still able to override this behavior if needed.
 
 #+begin_src elisp
   (setq-default indent-tabs-mode nil)
@@ -275,14 +275,17 @@ A simpler, distraction-free modeline that respects the current colorscheme.
 
 Emacs font heights are specified in 1/10 pt, so multiply your desired point size by 10 and you get your Emacs font height.
 
-We also change the default font if we're on Windows, because Courier New is an abomination. Consolas has been around since Windows Vista (circa 2007), so it ought to always be available. We trust other operating systems to have a sane default font.
+We also change the default fonts if we're on Windows, because Courier New is an abomination. Consolas has been around since Windows Vista (circa 2007), so it always ought to be available. We trust other operating systems to have a sane default font.
 
 #+begin_src elisp
   (set-face-attribute 'default nil :height 115)
+  (set-face-attribute 'variable-pitch nil :height 115)
+  (set-face-attribute 'fixed-pitch nil :height 115)
 
   (when (string-equal system-type "windows-nt")
     (set-face-attribute 'default nil :family "Consolas")
-    (set-face-attribute 'fixed-pitch nil :family (face-attribute 'default :family)))
+    (set-face-attribute 'variable-pitch nil :family "Segoe UI")
+    (set-face-attribute 'fixed-pitch nil :family "Consolas"))
 #+end_src
 
 ** General editing
@@ -354,10 +357,10 @@ Enable ANSI color interpretation in the compilation buffer. See [[https://stacko
 
 #+begin_src elisp
   (require 'ansi-color)
-  (defun colorize-compilation-buffer ()
+  (defun my/colorize-compilation-buffer ()
     (let ((inhibit-read-only t))
       (ansi-color-apply-on-region (point-min) (point-max))))
-  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+  (add-hook 'compilation-filter-hook 'my/colorize-compilation-buffer)
 #+end_src
 
 Make the compilation buffer scroll with its output.
