@@ -41,6 +41,21 @@ This does mean that I need to remember to print an error message for myself if I
 
 Add MELPA package archives, and refresh/install [[https://github.com/jwiegley/use-package][use-package]] if it's not already available.
 
+Whenever possible, I try to defer package loading so that my startup times are as fast as possible. =use-package='s documentation was a bit confusing at first, but eventually I got it figured out:
+
+ - If you use any of =:bind=, =:mode=, or =:commands=, you don't have
+   to manually =:defer t=.
+ - You can benchmark how fast your packages load by setting
+   =use-package-computer-statistics= before loading =use-package=
+   itself, and then invoking =M-x use-package-report=.
+ - Most packages, and especially ones that add support for new
+   programming languages, are already set up to autoload, so you can
+   add =:defer t= instead of figuring out a suitable =:mode= for them.
+ - Otherwise, try [[https://emacs.stackexchange.com/a/19718][checking the function]] you want to invoke from that
+   package, and if it's natively autoloaded, you can add =:defer t=.
+
+=magit= was the only notable exception to this rule; even though I specified a =:bind=, I still had to add a =:defer t=.
+
 #+begin_src elisp
   (unless (assoc-default "melpa" package-archives)
     (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
@@ -48,6 +63,7 @@ Add MELPA package archives, and refresh/install [[https://github.com/jwiegley/us
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
     (package-install 'use-package))
+
   (setq use-package-verbose t)
   (setq use-package-always-ensure t)
 #+end_src
@@ -65,7 +81,7 @@ Add MELPA package archives, and refresh/install [[https://github.com/jwiegley/us
 
 #+begin_src elisp
   (use-package sudo-edit
-    :defer 0.5)
+    :defer t)
 #+end_src
 
 ** General behavior
@@ -218,7 +234,7 @@ It's disabled for older versions of Emacs, since according to the developers the
 #+begin_src elisp
   (when (>= emacs-major-version 27)
     (use-package selectrum
-      :config (selectrum-mode +1)))
+      :config (selectrum-mode 1)))
 #+end_src
 
 ** Appearance
@@ -322,6 +338,7 @@ It's a little strange that you can't readily undo =M-x fill-paragraph=. This com
 
 #+begin_src elisp
   (use-package magit
+    :defer t
     :bind ("C-x g" . 'magit-status))
 #+end_src
 
@@ -353,7 +370,7 @@ LaTeX support.
 
 #+begin_src elisp
   (use-package tex-mode
-    :mode ("\\.(la)?tex\\'" . latex-mode)
+    :defer t
     :ensure auctex)
 #+end_src
 
@@ -371,28 +388,28 @@ JSON support.
 
 #+begin_src emacs-lisp
   (use-package json-mode
-    :mode "\\.json\\'")
+    :defer t)
 #+end_src
 
 YAML support.
 
 #+begin_src elisp
   (use-package yaml-mode
-    :mode "\\.ya?ml\\'")
+    :defer t)
 #+end_src
 
 TOML support.
 
 #+begin_src elisp
   (use-package toml-mode
-    :mode "\\.toml\\'")
+    :defer t)
 #+end_src
 
 CMake support.
 
 #+begin_src elisp
   (use-package cmake-mode
-    :mode "\\`CMakeLists\\.txt\\'")
+    :defer t)
 #+end_src
 
 OpenGL shader language support.
@@ -427,13 +444,14 @@ Rust support.
 
 #+begin_src elisp
   (use-package rust-mode
-    :mode ("\\.rs\\'" "\\.rust\\'"))
+    :defer t)
 #+end_src
 
-Language server protocol mode, and its associated UIs. By default, try to use =rust-analyzer= (rather than the older RLS) as the default LSP implementation for Rust code.
+Language server protocol mode, and its associated UIs. By default, try to use =rust-analyzer= (rather than the older RLS) as the default LSP implementation for Rust code. These are only enabled for Unix-like systems for now.
 
 #+begin_src elisp
   (use-package lsp-mode
+    :if (not (memq system-type '(ms-dos windows-nt cygwin)))
     :commands (lsp lsp-deferred)
     :hook (((rust-mode c-mode c++-mode) . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
@@ -441,5 +459,5 @@ Language server protocol mode, and its associated UIs. By default, try to use =r
 
   (use-package lsp-ui
     :commands lsp-ui-mode
-    :after lsp-mode)
+    :requires lsp-mode)
 #+end_src
