@@ -6,17 +6,35 @@ This is my GNU Emacs config file. There are many like it, but this one is mine.
 
 ** Early init
 
-=package-initialize= should be called first, even though we do package management stuff later.
-
-#+begin_src elisp
-  (package-initialize)
-#+end_src
-
 Temporarily increase the number of bytes of cons'ing we can do before garbage collection kicks in. We don't want to run the GC until after we finish initializing.
 
 #+begin_src elisp
-  (setq gc-cons-threshold 100000000)
+  (setq gc-cons-threshold (* 1024 1024 10))
   (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 800000)))
+#+end_src
+
+Test for native Emacs Lisp compilation (with =libgccjit=) and native JSON parsing (with =libjansson=). See [[https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation][here]].
+
+Native compilation will likely become part of vanilla Emacs starting in version 28. In the event that we do support it, we'll enable deferred compilation mode so that we don't spend a ton of time AOT compiling everything.
+
+#+begin_src elisp
+  (if (and (fboundp 'native-comp-available-p)
+           (native-comp-available-p))
+      (message "Native compilation is available")
+    (message "Native complation is *not* available"))
+
+  (if (functionp 'json-serialize)
+      (message "Native JSON is available")
+    (message "Native JSON is *not* available"))
+
+  (setq comp-deferred-compilation t)
+#+end_src
+
+Call =package-initialize= very early, even before we get to the package management section. Newer versions of Emacs activate installed packages /before/ loading the init file, so we don't need to call it in that case.
+
+#+begin_src elisp
+  (when (< emacs-major-version 27)
+    (package-initialize))
 #+end_src
 
 By default, stuff added by Customize will show up in =init.el=, or whatever is specified by =C-h v user-init-file=. We want our =init.el= to remain simple and uncluttered, and we don't want it to contain changes that would show up in version control.
