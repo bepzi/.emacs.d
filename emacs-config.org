@@ -236,6 +236,12 @@ Disable scrollbars and the tacky menu bar. Without them, we can almost pretend t
     (horizontal-scroll-bar-mode -1))
 #+end_src
 
+Allow custom themes to load unhindered.
+
+#+begin_src elisp
+  (setq custom-safe-themes t)
+#+end_src
+
 Dark mode colorscheme.
 
 #+begin_src elisp
