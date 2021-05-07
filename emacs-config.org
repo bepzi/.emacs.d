@@ -46,7 +46,7 @@ Whenever possible, I try to defer package loading so that my startup times are a
  - If you use any of =:bind=, =:mode=, or =:commands=, you don't have
    to manually =:defer t=.
  - You can benchmark how fast your packages load by setting
-   =use-package-computer-statistics= before loading =use-package=
+   =use-package-compute-statistics= before loading =use-package=
    itself, and then invoking =M-x use-package-report=.
  - Most packages, and especially ones that add support for new
    programming languages, are already set up to autoload, so you can
@@ -129,7 +129,7 @@ Change "yes or no" to "y or n", because it's less typing.
   (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
-If I start typing while I have a selection active, delete the selection like every other editor does.
+If I start typing while I have a selection active, delete the selection like every other editor would do.
 
 #+begin_src elisp
   (delete-selection-mode t)
@@ -300,7 +300,7 @@ Show whitespace when I'm editing code, but change the theme so that it's less ob
 
 #+begin_src elisp
   (defun my/lighten-color (color-hex-string)
-    "Crudely lightens a hex color string."
+    "Crudely lightens a color hex string."
     (let ((hex-number (string-to-number (substring color-hex-string 1) 16)))
       (format "#%x" (lsh (logand hex-number #x7f7f7f) 1))))
 
