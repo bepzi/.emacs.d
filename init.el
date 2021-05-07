@@ -10,15 +10,19 @@
 ;; use symlinks to manage the config files.
 (setq vc-follow-symlinks t)
 
-;; Only tangle the literate config file if a recent version of Org is
-;; installed, since some older Emacs don't have this function.
-(when (fboundp 'org-babel-load-file)
-    (let ((config-files (directory-files user-emacs-directory 'FULL "config\.org$")))
-      (if (= (length config-files) 1)
-          (org-babel-load-file (car config-files))
+;; Some older Emacsen don't have this function.
+(unless (fboundp 'org-babel-load-file)
+  (error "%s" "No such function 'org-babel-load-file'"))
 
-        (error "%s" "Couldn't find exactly one 'config.org' \
-file in the same directory as init.el"))))
+(let ((config-file-org (concat user-emacs-directory "emacs-config.org"))
+      (config-file-el (concat user-emacs-directory "emacs-config.el")))
+  (unless (file-exists-p config-file-org)
+    (error "No such file '%s'" config-file-org))
+
+  ;; Minor optimization: avoid invoking org-babel if we don't have to.
+  (if (file-newer-than-file-p config-file-el config-file-org)
+      (load config-file-el)
+    (org-babel-load-file config-file-org)))
 
 (message "init.el loaded in %s\n" (emacs-init-time))
 
