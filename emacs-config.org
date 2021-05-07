@@ -296,6 +296,31 @@ Delete trailing whitespace when saving. The only time this gets in the way is wh
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
 
+Show whitespace when I'm editing code, but change the theme so that it's less obtrusive. The goal is to be able to completely tune out the whitespace symbols, except when I need to pay attention to them.
+
+#+begin_src elisp
+  (defun my/lighten-color (color-hex-string)
+    "Crudely lightens a hex color string."
+    (let ((hex-number (string-to-number (substring color-hex-string 1) 16)))
+      (format "#%x" (lsh (logand hex-number #x7f7f7f) 1))))
+
+  (setq whitespace-style '(face tabs spaces space-mark tab-mark))
+
+  (with-eval-after-load 'whitespace
+    (let ((lighter-background (my/lighten-color (face-attribute 'default :background))))
+      (set-face-attribute 'whitespace-indentation      nil :background nil :foreground lighter-background)
+      (set-face-attribute 'whitespace-space-after-tab  nil :background nil :foreground lighter-background)
+      (set-face-attribute 'whitespace-space-before-tab nil :background nil :foreground lighter-background)
+      (set-face-attribute 'whitespace-space            nil :background nil :foreground lighter-background)
+      (set-face-attribute 'whitespace-tab              nil :background nil :foreground lighter-background)
+      (set-face-attribute 'whitespace-newline          nil :background nil :foreground lighter-background)
+      (set-face-attribute 'whitespace-empty            nil :background nil :foreground lighter-background)
+      (set-face-attribute 'whitespace-line             nil :background nil :foreground nil)
+      (set-face-attribute 'whitespace-trailing         nil :background lighter-background :foreground nil)))
+
+  (add-hook 'prog-mode-hook 'whitespace-mode)
+#+end_src
+
 Sentences in Emacs are defined to end with two spaces instead of one by default. This means that when I use a command like =M-a= or =M-e= (backward and forward sentence, respectively) or =M-k= (kill to end of sentence), I end up deleting the entire paragraph, because I never end sentences with two spaces. This code changes it to be one space, like I expect.
 
 The [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Sentences.html][GNU documentation]] notes that this may interfere with abbreviations, but I think this is an acceptable tradeoff. I'll never use sentence-based editing commands otherwise. In fact, I didn't even know about them until I saw it in [[https://pages.sachachua.com/.emacs.d/Sacha.html][someone else's]] config. I simply thought =M-e= moved to the end of the paragraph!
