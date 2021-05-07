@@ -258,19 +258,49 @@ Allow custom themes to load unhindered.
   (setq custom-safe-themes t)
 #+end_src
 
-Dark mode colorscheme.
+When Emacs starts in daemon mode, it won't always enable our custom themes. So we specify a function that handles everything to do with our custom themes, and we ensure it gets run once the daemon has finished loading. See [[https://stackoverflow.com/a/23668935][here]] for more info.
+
+The default =whitespace-mode= theme is hideously ugly, so we change it to blend in with our custom theme. Note that we have to ensure =whitespace.el= loads first, otherwise the faces that we're trying to modify won't be loaded yet.
 
 #+begin_src elisp
-  (use-package base16-theme
-    :config (load-theme 'base16-gruvbox-dark-hard t))
+  (defun my/lighten-color (color-hex-string)
+    "Crudely lightens a color hex string."
+    (let ((hex-number (string-to-number (substring color-hex-string 1) 16)))
+      (format "#%x" (lsh (logand hex-number #x7f7f7f) 1))))
+
+  (defun my/apply-themes-and-styles ()
+    "Loads and applies the custom themes."
+    (interactive)
+
+    (use-package base16-theme
+      :config (load-theme 'base16-gruvbox-dark-hard t))
+
+    (use-package smart-mode-line
+      :config (setq sml/theme 'respectful)
+      (smart-mode-line-enable))
+
+    (with-eval-after-load 'whitespace
+      (let ((lighter-background (my/lighten-color (face-attribute 'default :background))))
+        (set-face-attribute 'whitespace-indentation      nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-space-after-tab  nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-space-before-tab nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-space            nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-tab              nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-newline          nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-empty            nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-line             nil :background nil :foreground nil)
+        (set-face-attribute 'whitespace-trailing         nil :background lighter-background :foreground nil))))
 #+end_src
 
-A simpler, distraction-free modeline that respects the current colorscheme.
+Finally: if we're loading in daemon mode, defer loading the themes; otherwise, just do it immediately.
 
 #+begin_src elisp
-  (use-package smart-mode-line
-    :config (setq sml/theme 'respectful)
-    (smart-mode-line-enable))
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions
+                (lambda (frame)
+                  (with-selected-frame frame
+                    (my/apply-themes-and-styles))))
+    (my/apply-themes-and-styles))
 #+end_src
 
 Emacs font heights are specified in 1/10 pt, so multiply your desired point size by 10 and you get your Emacs font height.
@@ -296,28 +326,10 @@ Delete trailing whitespace when saving. The only time this gets in the way is wh
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
 
-Show whitespace when I'm editing code, but change the theme so that it's less obtrusive. The goal is to be able to completely tune out the whitespace symbols, except when I need to pay attention to them.
+Show some whitespace when editing code, but not all whitespace.
 
 #+begin_src elisp
-  (defun my/lighten-color (color-hex-string)
-    "Crudely lightens a color hex string."
-    (let ((hex-number (string-to-number (substring color-hex-string 1) 16)))
-      (format "#%x" (lsh (logand hex-number #x7f7f7f) 1))))
-
   (setq whitespace-style '(face tabs spaces space-mark tab-mark))
-
-  (with-eval-after-load 'whitespace
-    (let ((lighter-background (my/lighten-color (face-attribute 'default :background))))
-      (set-face-attribute 'whitespace-indentation      nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-space-after-tab  nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-space-before-tab nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-space            nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-tab              nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-newline          nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-empty            nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-line             nil :background nil :foreground nil)
-      (set-face-attribute 'whitespace-trailing         nil :background lighter-background :foreground nil)))
-
   (add-hook 'prog-mode-hook 'whitespace-mode)
 #+end_src
 
