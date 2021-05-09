@@ -34,7 +34,7 @@ By default, stuff added by Customize will show up in =init.el=, or whatever is s
     (load custom-file :noerror))
 #+end_src
 
-If I need to, I can define variables containing sensitive information and put them into a separate file that shouldn't be checked into version control. My =.gitignore= for this repo blacklists all files except for the ones I choose to commit, and =secrets.el= is not one of them.
+If I need to, I can define variables containing sensitive or platform-specific information and put them into a separate file that shouldn't be checked into version control. My =.gitignore= for this repo blacklists all files except for the ones I choose to commit, and =secrets.el= is not one of them.
 
 This does mean that I need to remember to print an error message for myself if I forget to define anything that I use later in this file.
 
@@ -571,4 +571,49 @@ Language server protocol mode, and its associated UIs. By default, try to use =r
   (use-package lsp-ui
     :commands lsp-ui-mode
     :requires lsp-mode)
+#+end_src
+
+** Org mode
+
+Don't automatically indent the text to match the headers.
+
+#+begin_src elisp
+  (setq org-adapt-indentation nil)
+#+end_src
+
+Set up [[https://github.com/bastibe/org-journal][org-journal]].
+
+Helpful info from the documentation:
+
+#+begin_quote
+Doing =M-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal directory in the default path... open or create a file in =org-journal-mode=, and insert a template for a new journal entry.
+
+The same command with a prefix argument (=C-u C-c C-j=) will do everything mentioned while skipping entry creation, which is useful for looking at the current journal file.
+#+end_quote
+
+I have the prefix set to =C-c j= so that it doesn't conflict with vanilla Org mode.
+
+#+begin_src elisp
+  (use-package org-journal
+    :if (boundp 'secrets/org-journal-dir)
+    :defer t
+    :init (setq org-journal-prefix-key "C-c j ")
+    :config (setq org-journal-dir secrets/org-journal-dir
+                  org-journal-enable-encryption t
+                  org-journal-start-on-weekday 7
+                  org-journal-file-type 'weekly))
+
+  (global-set-key (kbd "C-c j n") 'org-journal-new-entry)
+#+end_src
+
+When editing encrypted files, make sure they're not autosaved to disk unencrypted. The default value is to prompt, and I don't want to have to think about it.
+
+#+begin_src elisp
+  (setq org-crypt-disable-auto-save t)
+#+end_src
+
+Automatically boost the text size when editing a journal file.
+
+#+begin_src elisp
+  (add-hook 'org-journal-mode-hook (lambda () (text-scale-increase 1)))
 #+end_src
