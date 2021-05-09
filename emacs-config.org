@@ -265,66 +265,6 @@ Allow custom themes to load unhindered.
   (setq custom-safe-themes t)
 #+end_src
 
-When Emacs starts in daemon mode, it won't reliably enable our custom themes. For example, when you open =emacsclient=, I see my custom color theme, but the code that configures =whitespace-mode='s style doesn't get the right colors, because when the daemon starts, Emacs somehow thinks the background color is pure black. So we specify a function that handles everything to do with our custom themes, and we ensure it gets run only after the daemon has finished loading. See [[https://stackoverflow.com/a/23668935][here]] for more info.
-
-The default =whitespace-mode= theme is hideously ugly, so we change it to blend in with our custom theme. Note that we have to ensure =whitespace.el= loads first, otherwise the faces that we're trying to modify won't be loaded yet.
-
-#+begin_src elisp
-  (defun my/lighten-color (color-hex-string)
-    "Crudely lightens a color hex string."
-    (let ((hex-number (string-to-number (substring color-hex-string 1) 16)))
-      (format "#%x" (lsh (logand hex-number #x7f7f7f) 1))))
-
-  (defun my/apply-themes-and-styles ()
-    "Loads and applies the custom themes."
-    (interactive)
-
-    (use-package base16-theme
-      :config (load-theme 'base16-gruvbox-dark-hard t))
-
-    (use-package smart-mode-line
-      :config (setq sml/theme 'respectful)
-      (smart-mode-line-enable))
-
-    (with-eval-after-load 'whitespace
-      (let ((lighter-background (my/lighten-color (face-attribute 'default :background))))
-        (set-face-attribute 'whitespace-indentation      nil :background nil :foreground lighter-background)
-        (set-face-attribute 'whitespace-space-after-tab  nil :background nil :foreground lighter-background)
-        (set-face-attribute 'whitespace-space-before-tab nil :background nil :foreground lighter-background)
-        (set-face-attribute 'whitespace-space            nil :background nil :foreground lighter-background)
-        (set-face-attribute 'whitespace-tab              nil :background nil :foreground lighter-background)
-        (set-face-attribute 'whitespace-newline          nil :background nil :foreground lighter-background)
-        (set-face-attribute 'whitespace-empty            nil :background nil :foreground lighter-background)
-        (set-face-attribute 'whitespace-line             nil :background nil :foreground nil)
-        (set-face-attribute 'whitespace-trailing         nil :background lighter-background :foreground nil))))
-#+end_src
-
-If we're loading in daemon mode, defer loading the themes; otherwise, just do it immediately.
-
-#+begin_src elisp
-  (if (daemonp)
-      (add-hook 'after-make-frame-functions
-                (lambda (frame)
-                  (with-selected-frame frame
-                    (my/apply-themes-and-styles))))
-    (my/apply-themes-and-styles))
-#+end_src
-
-Emacs font heights are specified in 1/10 pt, so multiply your desired point size by 10 and you get your Emacs font height.
-
-We also change the default fonts if we're on Windows, because Courier New is an abomination. Consolas has been around since Windows Vista (circa 2007), so it always ought to be available. We trust other operating systems to have a sane default font.
-
-#+begin_src elisp
-  (set-face-attribute 'default nil :height 115)
-  (set-face-attribute 'variable-pitch nil :height 115)
-  (set-face-attribute 'fixed-pitch nil :height 115 :family (face-attribute 'default :family))
-
-  (when (string-equal system-type "windows-nt")
-    (set-face-attribute 'default nil :family "Consolas")
-    (set-face-attribute 'variable-pitch nil :family "Segoe UI")
-    (set-face-attribute 'fixed-pitch nil :family "Consolas"))
-#+end_src
-
 Define a function that allows us to query the fonts we have installed, so that we can gracefully fall back from custom fonts to default system fonts.
 
 #+begin_src elisp
@@ -344,6 +284,100 @@ Define a function that allows us to query the fonts we have installed, so that w
     (my/first-matched-element font-families (font-family-list) 'member-ignore-case))
 #+end_src
 
+When Emacs starts in daemon mode, it won't reliably enable our custom themes. For example, when you open =emacsclient=, I see my custom color theme, but the code that configures =whitespace-mode='s style doesn't get the right colors, because when the daemon starts, Emacs somehow thinks the background color is pure black. So we specify a function that handles everything to do with our custom themes, and we ensure it gets run only after the daemon has finished loading. See [[https://stackoverflow.com/a/23668935][here]] for more info.
+
+Emacs font heights are specified in 1/10 pt, so multiply your desired point size by 10 and you get your Emacs font height.
+
+We also change the default fonts if we're on Windows, because Courier New is an abomination. Consolas has been around since Windows Vista (circa 2007), so it always ought to be available. We trust other operating systems to have a sane default font.
+
+The default =whitespace-mode= theme is hideously ugly, so we change it to blend in with our custom theme. Note that we have to ensure =whitespace.el= loads first, otherwise the faces that we're trying to modify won't be loaded yet.
+
+#+begin_src elisp
+  (defun my/lighten-color (color-hex-string)
+    "Crudely lightens a color hex string."
+    (let ((hex-number (string-to-number (substring color-hex-string 1) 16)))
+      (format "#%x" (lsh (logand hex-number #x7f7f7f) 1))))
+
+  (defun my/apply-themes-and-styles ()
+    "Loads and applies the custom themes."
+    (interactive)
+
+    (set-face-attribute 'default nil :height 115)
+    (set-face-attribute 'variable-pitch nil :height 115)
+    (set-face-attribute 'fixed-pitch nil :height 115 :family (face-attribute 'default :family))
+
+    (when (string-equal system-type "windows-nt")
+      (set-face-attribute 'default nil :family "Consolas")
+      (set-face-attribute 'variable-pitch nil :family "Segoe UI")
+      (set-face-attribute 'fixed-pitch nil :family "Consolas"))
+
+    (use-package base16-theme
+      :config (load-theme 'base16-gruvbox-dark-hard t))
+
+    (use-package smart-mode-line
+      :config (setq sml/theme 'respectful)
+      (smart-mode-line-enable))
+
+    (with-eval-after-load 'whitespace
+      (let ((lighter-background (my/lighten-color (face-attribute 'default :background))))
+        (set-face-attribute 'whitespace-indentation      nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-space-after-tab  nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-space-before-tab nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-space            nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-tab              nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-newline          nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-empty            nil :background nil :foreground lighter-background)
+        (set-face-attribute 'whitespace-line             nil :background nil :foreground nil)
+        (set-face-attribute 'whitespace-trailing         nil :background lighter-background :foreground nil)))
+
+    (with-eval-after-load 'org
+      (progn
+        (let* ((variable-font (my/get-installed-font
+                               '("ETBembo" "Liberation Serif" "Source Serif Pro" "Source Sans Pro" "Segoe UI")))
+               (variable-tuple `(:font ,variable-font))
+               (base-font-color (face-foreground 'default nil 'default))
+               (headline `(:inherit default :weight bold :foreground ,base-font-color)))
+
+          (set-face-attribute 'variable-pitch nil :family variable-font)
+
+          (custom-theme-set-faces
+           'user
+           `(org-level-8 ((t (,@headline ,@variable-tuple))))
+           `(org-level-7 ((t (,@headline ,@variable-tuple))))
+           `(org-level-6 ((t (,@headline ,@variable-tuple))))
+           `(org-level-5 ((t (,@headline ,@variable-tuple))))
+           `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
+           `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
+           `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
+           `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
+           `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))
+
+           '(org-block ((t (:inherit fixed-pitch))))
+           '(org-code ((t (:inherit (shadow fixed-pitch)))))
+           '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+           '(org-link ((t (:underline t))))
+           '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+           '(org-property-value ((t (:inherit fixed-pitch))) t)
+           '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+           '(org-table ((t (:inherit fixed-pitch))))
+           '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+           '(org-verbatim ((t (:inherit (shadow fixed-pitch)))))))
+
+        (when (equal (face-attribute 'variable-pitch :family) "ETBembo")
+          (set-face-attribute 'variable-pitch nil :height 135)))))
+#+end_src
+
+If we're loading in daemon mode, defer loading the themes; otherwise, just do it immediately.
+
+#+begin_src elisp
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions
+                (lambda (frame)
+                  (with-selected-frame frame
+                    (my/apply-themes-and-styles))))
+    (my/apply-themes-and-styles))
+#+end_src
+
 Theme Org-mode so that it's more WYSIWYG and writing-oriented. See [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][here]].
 
 In particular, we use a variable-pitched font for the basic text, and a fixed-pitch font for code and attributes.
@@ -353,47 +387,6 @@ In particular, we use a variable-pitched font for the basic text, and a fixed-pi
 
   (add-hook 'org-mode-hook 'variable-pitch-mode)
   (add-hook 'buffer-face-mode-hook (lambda () (diminish 'buffer-face-mode)))
-
-  (with-eval-after-load 'org
-    (let* ((variable-font (my/get-installed-font
-                           '("ETBembo" "Liberation Serif" "Source Serif Pro" "Source Sans Pro" "Segoe UI")))
-           (variable-tuple `(:font ,variable-font))
-           (base-font-color (face-foreground 'default nil 'default))
-           (headline `(:inherit default :weight bold :foreground ,base-font-color)))
-
-      (set-face-attribute 'variable-pitch nil :family variable-font)
-
-      (custom-theme-set-faces
-       'user
-       `(org-level-8 ((t (,@headline ,@variable-tuple))))
-       `(org-level-7 ((t (,@headline ,@variable-tuple))))
-       `(org-level-6 ((t (,@headline ,@variable-tuple))))
-       `(org-level-5 ((t (,@headline ,@variable-tuple))))
-       `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
-       `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
-       `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
-       `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
-       `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))
-
-       '(org-block ((t (:inherit fixed-pitch))))
-       '(org-code ((t (:inherit (shadow fixed-pitch)))))
-       '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-       '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
-       '(org-link ((t (:underline t))))
-       '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-       '(org-property-value ((t (:inherit fixed-pitch))) t)
-       '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-       '(org-table ((t (:inherit fixed-pitch))))
-       '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-       '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))))
-#+end_src
-
-If we ended up using [[https://edwardtufte.github.io/et-book/][ET Book]] as our variable-pitch font, we'll want to bump up the font size a bit.
-
-#+begin_src elisp
-  (with-eval-after-load 'org
-    (when (equal (face-attribute 'variable-pitch :family) "ETBembo")
-      (set-face-attribute 'variable-pitch nil :height 135)))
 #+end_src
 
 ** General editing
