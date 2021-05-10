@@ -596,14 +596,12 @@ I have the prefix set to =C-c j= so that it doesn't conflict with vanilla Org mo
 #+begin_src elisp
   (use-package org-journal
     :if (boundp 'secrets/org-journal-dir)
-    :defer t
     :init (setq org-journal-prefix-key "C-c j ")
+    :bind ("C-c j n" . org-journal-new-entry)
     :config (setq org-journal-dir secrets/org-journal-dir
                   org-journal-enable-encryption t
                   org-journal-start-on-weekday 7
                   org-journal-file-type 'weekly))
-
-  (global-set-key (kbd "C-c j n") 'org-journal-new-entry)
 #+end_src
 
 When editing encrypted files, make sure they're not autosaved to disk unencrypted. The default value is to prompt, and I don't want to have to think about it.

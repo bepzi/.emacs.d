@@ -27,6 +27,11 @@ That's it!
  download and compile. After this is done, though, starting Emacs
  should be quite quick: under a couple of seconds at most.
 
+For best results, you may want to install the [ET
+Book](https://edwardtufte.github.io/et-book/) font. Windows users may
+also need [GnuPG](https://www.emacswiki.org/emacs/GnuPG) for
+`org-journal` encryption.
+
 #### Daemon mode with `emacsclient`
 
 If you're on **Linux** with `systemd`, I also recommend installing a
