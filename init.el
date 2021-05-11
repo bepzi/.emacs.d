@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;;; init.el --- Entry point for Emacs configuration
 ;;; Commentary:
 ;;

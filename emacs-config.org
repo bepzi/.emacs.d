@@ -6,11 +6,32 @@ This is my GNU Emacs config file. There are many like it, but this one is mine.
 
 ** Early init
 
-Temporarily increase the number of bytes of cons'ing we can do before garbage collection kicks in. We don't want to run the GC until after we finish initializing.
+Enable [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Lexical-Binding.html][lexical binding]] to speed up Lisp evaluation.
 
 #+begin_src elisp
-  (setq gc-cons-threshold (* 1024 1024 10))
-  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 800000)))
+  ;; -*- lexical-binding: t; -*-
+#+end_src
+
+Temporarily increase the number of bytes of cons'ing we can do before garbage collection kicks in. We don't want to run the GC until after we finish initializing.
+
+These tricks were adapted from [[https://github.com/hlissner/doom-emacs/blob/665b627b7c07c8d29ec8d334588cecc2ba308248/docs/faq.org#how-does-doom-start-up-so-quickly][Doom Emacs]].
+
+#+begin_src elisp
+  (setq gc-cons-threshold most-positive-fixnum
+        gc-cons-percentage 0.6)
+
+  (add-hook 'emacs-startup-hook (lambda () (setq gc-cons-threshold 16777216 ; 16MB
+                                                 gc-cons-percentage 0.1)))
+#+end_src
+
+Temporarily unset =file-name-handler-alist= until we're done with init.
+
+#+begin_src elisp
+  (defvar my--file-name-handler-alist file-name-handler-alist)
+  (setq file-name-handler-alist nil)
+
+  (add-hook 'emacs-startup-hook (lambda ()
+                                  (setq file-name-handler-alist my--file-name-handler-alist)))
 #+end_src
 
 Native compilation will likely become part of vanilla Emacs starting in version 28. In the event that we do support it, we'll enable deferred compilation mode so that we don't spend a ton of time AOT compiling everything.
