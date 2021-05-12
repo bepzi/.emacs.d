@@ -349,16 +349,14 @@ The default =whitespace-mode= theme is hideously ugly, so we change it to blend 
 
 #+begin_src elisp
   (with-eval-after-load 'whitespace
-    (let ((lighter-background (my/lighten-color (face-attribute 'default :background))))
-      (set-face-attribute 'whitespace-indentation      nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-space-after-tab  nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-space-before-tab nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-space            nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-tab              nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-newline          nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-empty            nil :background nil :foreground lighter-background)
-      (set-face-attribute 'whitespace-line             nil :background nil :foreground nil)
-      (set-face-attribute 'whitespace-trailing         nil :background lighter-background :foreground nil)))
+    (let ((lighter-background (my/lighten-color (face-attribute 'default :background)))
+          (faces '(whitespace-indentation whitespace-space-after-tab whitespace-space-before-tab
+                                          whitespace-space whitespace-tab whitespace-newline
+                                          whitespace-empty whitespace-line)))
+
+      (dolist (face faces)
+        (set-face-attribute face nil :background nil :foreground lighter-background))
+      (set-face-attribute 'whitespace-trailing nil :background lighter-background :foreground nil)))
 #+end_src
 
 Theme Org-mode so that it's more writing-oriented. See [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][here]]. In particular, we use a variable-pitched font for the basic text, and a fixed-pitch font for code and attributes.
@@ -368,43 +366,50 @@ Once again, we need to ensure =org.el= is loaded before we can customize its fac
 #+begin_src elisp
   (with-eval-after-load 'org
     (progn
-      (let* ((variable-font (my/get-installed-font
-                             '("ETBembo" "Liberation Serif" "Source Serif Pro" "Source Sans Pro" "Segoe UI")))
-             (variable-tuple `(:font ,variable-font))
-             (base-font-color (face-foreground 'default nil 'default))
-             (headline `(:inherit default :weight bold :foreground ,base-font-color)))
+      (let* ((serif-fonts '("Source Serif 4" "Apple Garamond" "Baskerville"
+                            "Libre Baskerville" "Times New Roman" "Droid Serif"))
+             (variable-font (my/get-installed-font serif-fonts))
+             (base-font-color (face-foreground 'default nil 'default)))
 
         (set-face-attribute 'variable-pitch nil :family variable-font)
 
-        (custom-theme-set-faces
-         'user
-         `(org-level-8 ((t (,@headline ,@variable-tuple))))
-         `(org-level-7 ((t (,@headline ,@variable-tuple))))
-         `(org-level-6 ((t (,@headline ,@variable-tuple))))
-         `(org-level-5 ((t (,@headline ,@variable-tuple))))
-         `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
-         `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
-         `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
-         `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
-         `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))
+        ;; Set up headers and stuff to use variable-pitch.
+        (let ((org-variable-faces '(org-level-8 org-level-7 org-level-6 org-level-5
+                                                org-level-4 org-level-3 org-level-2
+                                                org-level-1 org-document-title)))
 
-         '(org-block ((t (:inherit fixed-pitch))))
-         '(org-code ((t (:inherit (shadow fixed-pitch)))))
-         '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-         '(org-link ((t (:underline t))))
-         '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-         '(org-property-value ((t (:inherit fixed-pitch))) t)
-         '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-         '(org-table ((t (:inherit fixed-pitch))))
-         '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-         '(org-verbatim ((t (:inherit (shadow fixed-pitch)))))))
+          (dolist (face org-variable-faces)
+            (set-face-attribute face nil
+                                :inherit 'default
+                                :weight 'bold
+                                :foreground base-font-color
+                                :family variable-font))
 
-      (when (equal (face-attribute 'variable-pitch :family) "ETBembo")
-        (set-face-attribute 'variable-pitch nil :height 135))))
+          (set-face-attribute 'org-level-4 nil :height 1.1)
+          (set-face-attribute 'org-level-3 nil :height 1.25)
+          (set-face-attribute 'org-level-2 nil :height 1.5)
+          (set-face-attribute 'org-level-1 nil :height 1.75)
+          (set-face-attribute 'org-document-title nil :height 2.0 :underline nil))
+
+        ;; When global variable-pitch-mode is enabled, we need to reset
+        ;; everything else back to fixed-pitch.
+        (let ((org-fixed-faces '(org-block org-meta-line org-property-value org-table))
+              (org-fixed-shadow-faces '(org-code org-document-info-keyword org-tag org-verbatim)))
+
+          (dolist (face org-fixed-faces)
+            (set-face-attribute face nil :inherit 'fixed-pitch))
+          (dolist (face org-fixed-shadow-faces)
+            (set-face-attribute face nil :inherit '(fixed-pitch shadow)))
+
+          (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+          (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+
+          (set-face-attribute 'org-tag nil :weight 'bold :height 0.8)
+          (set-face-attribute 'org-link nil :underline t)))))
 #+end_src
 
 #+begin_src elisp
-  )
+  ) ; End of my/apply-themes-and-styles
 #+end_src
 
 Finally, if we're loading in daemon mode, defer loading the themes; otherwise, just do it immediately.
@@ -452,7 +457,7 @@ Also, I really need to get into the habit of using =C-x DEL= to delete backwards
   (setq sentence-end-double-space nil)
 #+end_src
 
-It's a little strange that you can't readily undo =M-x fill-paragraph=. This command binds =M-Q= to be the inverse of =M-q=.
+This binds =M-Q= to be the inverse of =M-q= (=M-x fill-paragraph=).
 
 #+begin_src elisp
   (defun my/unfill-paragraph (&optional region)
