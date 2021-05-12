@@ -17,7 +17,7 @@ That's it!
 
 ### Installation
 
- - Make sure your version of Emacs is relatively recent (25+).
+ - Make sure your version of Emacs is relatively recent (26.1+).
 
  - Clone this repository to your `$HOME` folder, or wherever
  `.emacs.d` should live on your operating system. On Windows 10,

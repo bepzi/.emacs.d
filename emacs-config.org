@@ -223,8 +223,8 @@ The following code will:
  4. Ensure files have a final newline appended when they are saved.
  5. Flash the frame rather than ringing a "bell" to get your
     attention.
- 6. If there are multiple versions of the same file available to
-    =load=, it will prefer the newest version.
+ 6. Prefer the newest Emacs Lisp byte code if there's multiple
+    versions available.
  7. Make =ediff= display everything in a single frame rather than
     creating a new one.
 
@@ -257,12 +257,9 @@ Things I need to remember when I use this package:
  - To navigate into a directory while finding a file, press =TAB= or
    =C-i=, /not/ =RET=.
 
-It's disabled for older versions of Emacs, since according to the developers the way messages were displayed in the minibuffer was "unworkably bad."
-
 #+begin_src elisp
-  (when (>= emacs-major-version 27)
-    (use-package selectrum
-      :config (selectrum-mode 1)))
+  (use-package selectrum
+    :config (selectrum-mode 1))
 #+end_src
 
 ** Appearance
