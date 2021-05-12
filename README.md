@@ -27,9 +27,12 @@ That's it!
  download and compile. After this is done, though, starting Emacs
  should be quite quick: under a couple of seconds at most.
 
+For best visual results, install [Adobe Source Serif
+4](https://github.com/adobe-fonts/source-serif) (Regular, Italic,
+Bold, and BoldItalic versions.)
+
 Windows users may need to install
-[GnuPG](https://www.emacswiki.org/emacs/GnuPG) for `org-journal`
-encryption.
+[GnuPG](https://www.emacswiki.org/emacs/GnuPG) for `org-crypt`.
 
 #### Daemon mode with `emacsclient`
 

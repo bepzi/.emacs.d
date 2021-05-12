@@ -332,6 +332,12 @@ We also change the default fonts if we're on Windows, because Courier New is an 
     (set-face-attribute 'default nil :family "Consolas")
     (set-face-attribute 'variable-pitch nil :family "Segoe UI")
     (set-face-attribute 'fixed-pitch nil :family "Consolas"))
+
+  (let* ((serif-fonts '("Source Serif 4" "Apple Garamond" "Baskerville"
+                        "Libre Baskerville" "Times New Roman" "Droid Serif"))
+         (variable-font (my/get-installed-font serif-fonts)))
+    (when variable-font
+      (set-face-attribute 'variable-pitch nil :family variable-font)))
 #+end_src
 
 Install and load the color scheme, as well as a simpler, distraction-free modeline that respects that color scheme.
@@ -365,47 +371,29 @@ Once again, we need to ensure =org.el= is loaded before we can customize its fac
 
 #+begin_src elisp
   (with-eval-after-load 'org
-    (progn
-      (let* ((serif-fonts '("Source Serif 4" "Apple Garamond" "Baskerville"
-                            "Libre Baskerville" "Times New Roman" "Droid Serif"))
-             (variable-font (my/get-installed-font serif-fonts))
-             (base-font-color (face-foreground 'default nil 'default)))
+    (let ((variable-font (face-attribute 'variable-pitch :family)))
 
-        (set-face-attribute 'variable-pitch nil :family variable-font)
+      ;; Set up headers and stuff to use variable-pitch.
+      (let ((org-variable-faces '(org-level-8 org-level-7 org-level-6 org-level-5
+                                              org-level-4 org-level-3 org-level-2
+                                              org-level-1 org-document-title)))
+        (dolist (face org-variable-faces)
+          (set-face-attribute face nil :family variable-font)))
 
-        ;; Set up headers and stuff to use variable-pitch.
-        (let ((org-variable-faces '(org-level-8 org-level-7 org-level-6 org-level-5
-                                                org-level-4 org-level-3 org-level-2
-                                                org-level-1 org-document-title)))
+      ;; When global variable-pitch-mode is enabled, we need to reset
+      ;; everything else back to fixed-pitch.
+      (let ((org-fixed-faces '(org-block org-meta-line org-property-value org-table))
+            (org-fixed-shadow-faces '(org-code org-document-info-keyword org-tag org-verbatim)))
+        (dolist (face org-fixed-faces)
+          (set-face-attribute face nil :inherit 'fixed-pitch))
+        (dolist (face org-fixed-shadow-faces)
+          (set-face-attribute face nil :inherit '(fixed-pitch shadow)))
 
-          (dolist (face org-variable-faces)
-            (set-face-attribute face nil
-                                :inherit 'default
-                                :weight 'bold
-                                :foreground base-font-color
-                                :family variable-font))
+        (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+        (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
 
-          (set-face-attribute 'org-level-4 nil :height 1.1)
-          (set-face-attribute 'org-level-3 nil :height 1.25)
-          (set-face-attribute 'org-level-2 nil :height 1.5)
-          (set-face-attribute 'org-level-1 nil :height 1.75)
-          (set-face-attribute 'org-document-title nil :height 2.0 :underline nil))
-
-        ;; When global variable-pitch-mode is enabled, we need to reset
-        ;; everything else back to fixed-pitch.
-        (let ((org-fixed-faces '(org-block org-meta-line org-property-value org-table))
-              (org-fixed-shadow-faces '(org-code org-document-info-keyword org-tag org-verbatim)))
-
-          (dolist (face org-fixed-faces)
-            (set-face-attribute face nil :inherit 'fixed-pitch))
-          (dolist (face org-fixed-shadow-faces)
-            (set-face-attribute face nil :inherit '(fixed-pitch shadow)))
-
-          (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-          (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-
-          (set-face-attribute 'org-tag nil :weight 'bold :height 0.8)
-          (set-face-attribute 'org-link nil :underline t)))))
+        (set-face-attribute 'org-tag nil :weight 'bold :height 0.8)
+        (set-face-attribute 'org-link nil :underline t))))
 #+end_src
 
 #+begin_src elisp
@@ -624,37 +612,78 @@ Don't automatically indent the text to match the headers.
   (setq org-adapt-indentation nil)
 #+end_src
 
-Set up [[https://github.com/bastibe/org-journal][org-journal]].
-
-Helpful info from the documentation:
-
-#+begin_quote
-Doing =M-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal directory in the default path... open or create a file in =org-journal-mode=, and insert a template for a new journal entry.
-
-The same command with a prefix argument (=C-u C-c C-j=) will do everything mentioned while skipping entry creation, which is useful for looking at the current journal file.
-#+end_quote
-
-I have the prefix set to =C-c j= so that it doesn't conflict with vanilla Org mode.
-
-#+begin_src elisp
-  (use-package org-journal
-    :if (boundp 'secrets/org-journal-dir)
-    :init (setq org-journal-prefix-key "C-c j ")
-    :bind ("C-c j n" . org-journal-new-entry)
-    :config (setq org-journal-dir secrets/org-journal-dir
-                  org-journal-enable-encryption t
-                  org-journal-start-on-weekday 7
-                  org-journal-file-type 'weekly))
-#+end_src
-
 When editing encrypted files, make sure they're not autosaved to disk unencrypted. The default value is to prompt, and I don't want to have to think about it.
 
 #+begin_src elisp
   (setq org-crypt-disable-auto-save t)
 #+end_src
 
+Other =org-crypt= stuff: setting the default PGP key, ensuring files are encrypted before being saved to disk, etc.
+
+#+begin_src elisp
+  (org-crypt-use-before-save-magic)
+  (setq org-tags-exclude-from-inheritance '("crypt"))
+
+  (when (boundp 'secrets/org-crypt-key)
+    (setq org-crypt-key secrets/org-crypt-key))
+#+end_src
+
+=org-store-link= can capture links to /files/, not just websites, and the links can be retrieved later with =C-c C-l= in Org mode. This is super useful for building links between different files and external websites in my Org database.
+
+#+begin_src elisp
+  (global-set-key (kbd "C-c l") 'org-store-link)
+#+end_src
+
+#+begin_src elisp
+  (when (boundp 'secrets/org-directory)
+    (setq org-directory secrets/org-directory))
+  (setq org-default-notes-file (expand-file-name "inbox.org" org-directory))
+#+end_src
+
+Set up =org-journal= for personal journaling. I change the prefix key to =C-c j= because I don't want =org-journal= and vanilla =org-mode= to clash.
+
+#+begin_src elisp
+  (use-package org-journal
+    :init (setq org-journal-prefix-key "C-c j ")
+    :config (setq org-journal-dir (expand-file-name "journal" org-directory)
+                  org-journal-enable-agenda-integration t
+                  org-journal-enable-cache t
+                  org-journal-encrypt-journal t
+                  org-journal-start-on-weekday 7
+                  org-journal-file-type 'weekly))
+#+end_src
+
 Automatically boost the text size when editing a journal file.
 
 #+begin_src elisp
   (add-hook 'org-journal-mode-hook (lambda () (text-scale-increase 1)))
+#+end_src
+
+=org-capture= is how I send and append text and data to my database of Org files.
+
+#+begin_src elisp
+  (global-set-key (kbd "C-c c") 'org-capture)
+
+  (defun my/org-journal-find-location ()
+    ;; Open today's journal, but specify a non-nil prefix argument in order to
+    ;; inhibit inserting the heading; org-capture will insert the heading.
+    (org-journal-new-entry t)
+    (unless (eq org-journal-file-type 'daily)
+      (org-narrow-to-subtree))
+    (goto-char (point-max)))
+
+  (setq org-capture-templates '(("j" "Add a journal entry" plain (function my/org-journal-find-location)
+                                 "** %(format-time-string org-journal-time-format)\n%i%?")
+
+                                ("t" "Add a TODO to the inbox" entry (file+headline org-default-notes-file "INBOX")
+                                 "** TODO %?\n")))
+#+end_src
+
+Set up =org-agenda=. =C-c a= gives me a menu from which I can pull all of my =TODO='s, events, and projects out of my Org database.
+
+#+begin_src elisp
+  (global-set-key (kbd "C-c a") 'org-agenda)
+
+  (setq org-agenda-files `(,(expand-file-name "agenda.org" org-directory) ,org-default-notes-file)
+        org-agenda-start-on-weekday nil)
 #+end_src
