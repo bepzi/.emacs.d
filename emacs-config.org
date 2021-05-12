@@ -34,10 +34,10 @@ Temporarily unset =file-name-handler-alist= until we're done with init.
                                   (setq file-name-handler-alist my--file-name-handler-alist)))
 #+end_src
 
-Native compilation will likely become part of vanilla Emacs starting in version 28. In the event that we do support it, we'll enable deferred compilation mode so that we don't spend a ton of time AOT compiling everything.
+Native compilation will likely become part of vanilla Emacs starting in version 28. In the event that we do support it, we'll disable deferred compilation mode.
 
 #+begin_src elisp
-  (setq comp-deferred-compilation t)
+  (setq comp-deferred-compilation nil)
 #+end_src
 
 Call =package-initialize= very early, even before we get to the package management section. Newer versions of Emacs activate installed packages /before/ loading the init file, so we don't need to call it in that case.
