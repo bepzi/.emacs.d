@@ -476,7 +476,33 @@ This binds =M-Q= to be the inverse of =M-q= (=M-x fill-paragraph=).
 
 ** Programming
 
-=magit= is the best Git interface I've ever used.
+Add the =company= auto-completion framework and its various integrations with other programming languages.
+
+Adapted from [[https://github.com/jwiegley/dot-emacs/blob/master/init.el][jwiegley's]] config files.
+
+#+begin_src elisp
+  (use-package company
+    :defer 3
+    :diminish
+    :commands (company-mode company-indent-or-complete-common)
+    :init
+    (dolist (hook '(emacs-lisp-mode-hook c-mode-common-hook))
+      (add-hook hook
+                #'(lambda ()
+                    (local-set-key (kbd "<tab>")
+                                   #'company-indent-or-complete-common))))
+    :config (global-company-mode 1))
+
+  (use-package company-auctex
+    :after (company latex))
+
+  (use-package company-elisp
+    :after company
+    :config
+    (push 'company-elisp company-backends))
+#+end_src
+
+Git VCS.
 
 #+begin_src elisp
   (use-package magit
@@ -644,6 +670,7 @@ Set up =org-journal= for personal journaling. I change the prefix key to =C-c j=
 
 #+begin_src elisp
   (use-package org-journal
+    :defer t
     :init (setq org-journal-prefix-key "C-c j ")
     :config (setq org-journal-dir (expand-file-name "journal" org-directory)
                   org-journal-enable-agenda-integration t
