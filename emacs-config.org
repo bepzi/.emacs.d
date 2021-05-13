@@ -648,7 +648,6 @@ Set up =org-journal= for personal journaling. I change the prefix key to =C-c j=
     :config (setq org-journal-dir (expand-file-name "journal" org-directory)
                   org-journal-enable-agenda-integration t
                   org-journal-enable-cache t
-                  org-journal-encrypt-journal t
                   org-journal-start-on-weekday 7
                   org-journal-file-type 'weekly))
 #+end_src
