@@ -196,10 +196,12 @@ Prefer RegEx-aware search functions. The originals are still available via the =
   (global-set-key (kbd "C-M-r") 'isearch-backward)
 #+end_src
 
-Automatically refresh the buffer if the file is changed externally. It's a pain to run something like =clang-format= and then not get to see the updated buffer.
+Automatically refresh the buffer if the file is changed externally. It's a pain to run something like =clang-format= and then not get to see the updated buffer. Do the same thing for Dired, and for ibuffer.
 
 #+begin_src elisp
   (global-auto-revert-mode t)
+  (setq dired-auto-revert-buffer t)
+  (add-hook 'ibuffer-mode-hook (lambda () (ibuffer-auto-mode 1)))
 #+end_src
 
 Highlight pairs of parentheses.
