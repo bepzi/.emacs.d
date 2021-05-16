@@ -34,6 +34,9 @@ Bold, and BoldItalic versions.)
 Windows users may need to install
 [GnuPG](https://www.emacswiki.org/emacs/GnuPG) for `org-crypt`.
 
+For `Org-Protocol`, see
+[here](https://www.orgroam.com/manual.html#Installation-_00281_0029).
+
 #### Daemon mode with `emacsclient`
 
 If you're on **Linux** with `systemd`, I also recommend installing a

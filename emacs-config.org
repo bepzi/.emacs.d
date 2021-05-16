@@ -400,6 +400,11 @@ Once again, we need to ensure =org.el= is loaded before we can customize its fac
 #+end_src
 
 #+begin_src elisp
+  (with-eval-after-load 'bookmark
+    (set-face-attribute 'bookmark-face nil :background nil :foreground nil :inherit 'default))
+#+end_src
+
+#+begin_src elisp
   ) ; End of my/apply-themes-and-styles
 #+end_src
 
@@ -676,6 +681,7 @@ Set up =org-journal= for personal journaling. I change the prefix key to =C-c j=
     :defer t
     :init (setq org-journal-prefix-key "C-c j ")
     :config (setq org-journal-dir (expand-file-name "journal" org-directory)
+                  org-journal-enable-encryption t
                   org-journal-enable-agenda-integration t
                   org-journal-enable-cache t
                   org-journal-start-on-weekday 7
@@ -701,11 +707,11 @@ Automatically boost the text size when editing a journal file.
       (org-narrow-to-subtree))
     (goto-char (point-max)))
 
-  (setq org-capture-templates '(("j" "Add a journal entry" plain (function my/org-journal-find-location)
-                                 "** %(format-time-string org-journal-time-format)\n%i%?")
+  (setq org-capture-templates '(("t" "Add unsorted data to the inbox" entry (file+headline org-default-notes-file "Inbox")
+                                 "** %?\n")
 
-                                ("t" "Add a TODO to the inbox" entry (file+headline org-default-notes-file "INBOX")
-                                 "** TODO %?\n")))
+                                ("j" "Add a journal entry" plain (function my/org-journal-find-location)
+                                 "** %(format-time-string org-journal-time-format)\n%i%?")))
 #+end_src
 
 Set up =org-agenda=. =C-c a= gives me a menu from which I can pull all of my =TODO='s, events, and projects out of my Org database.
@@ -715,4 +721,25 @@ Set up =org-agenda=. =C-c a= gives me a menu from which I can pull all of my =TO
 
   (setq org-agenda-files `(,(expand-file-name "agenda.org" org-directory) ,org-default-notes-file)
         org-agenda-start-on-weekday nil)
+
+  (setq org-todo-keywords '((sequence "THEN(n)" "TODO(t)" "|" "DONE(d)" "CANCELLED(c)")))
+#+end_src
+
+Set up =org-roam= to manage my personal knowledge wiki.
+
+#+begin_src elisp
+  (use-package org-roam
+    :if (executable-find "sqlite3")
+    :diminish
+    :hook (after-init . org-roam-mode)
+    :custom (org-roam-directory (expand-file-name "roam" org-directory))
+    :bind (:map org-roam-mode-map
+                (("C-c n l" . org-roam)
+                 ("C-c n f" . org-roam-find-file)
+                 ("C-c n g" . org-roam-graph))
+                :map org-mode-map
+                (("C-c n i" . org-roam-insert))
+                (("C-c n I" . org-roam-insert-immediate))))
+
+  (require 'org-roam-protocol)
 #+end_src
