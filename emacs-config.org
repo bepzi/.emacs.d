@@ -488,13 +488,13 @@ Adapted from [[https://github.com/jwiegley/dot-emacs/blob/master/init.el][jwiegl
     :defer 3
     :diminish
     :commands (company-mode company-indent-or-complete-common)
-    :hook prog-mode
     :init
     (dolist (hook '(emacs-lisp-mode-hook c-mode-common-hook))
       (add-hook hook
                 #'(lambda ()
                     (local-set-key (kbd "<tab>")
-                                   #'company-indent-or-complete-common)))))
+                                   #'company-indent-or-complete-common))))
+    :config (global-company-mode 1))
 
   (use-package company-auctex
     :after (company latex))
