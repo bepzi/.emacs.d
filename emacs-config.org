@@ -482,6 +482,23 @@ This binds =M-Q= to be the inverse of =M-q= (=M-x fill-paragraph=).
     :config (global-undo-tree-mode))
 #+end_src
 
+=nov.el= allows reading EPUBs in Emacs. Use =n= and =p= to navigate chapters, otherwise, standard Emacs keybindings apply.
+
+#+begin_src elisp
+  (use-package nov
+    :defer 3
+    :config (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+#+end_src
+
+View and annotate PDFs.
+
+#+begin_src elisp
+  (use-package pdf-tools
+    :defer 3
+    :config (pdf-tools-install)
+    (setq pdf-annot-activate-created-annotations t))
+#+end_src
+
 ** Programming
 
 Add the =company= auto-completion framework and its various integrations with other programming languages.
@@ -547,7 +564,8 @@ LaTeX support.
 #+begin_src elisp
   (use-package tex-mode
     :defer t
-    :ensure auctex)
+    :ensure auctex
+    :config (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 #+end_src
 
 Markdown support, with special rules for when to prefer GitHub-flavored markdown.
