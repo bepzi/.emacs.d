@@ -400,8 +400,9 @@ Once again, we need to ensure =org.el= is loaded before we can customize its fac
 #+end_src
 
 #+begin_src elisp
-  (with-eval-after-load 'bookmark
-    (set-face-attribute 'bookmark-face nil :background nil :foreground nil :inherit 'default))
+  (when (> emacs-major-version 27)
+    (with-eval-after-load 'bookmark
+      (set-face-attribute 'bookmark-face nil :background nil :foreground nil :inherit 'default)))
 #+end_src
 
 #+begin_src elisp
@@ -486,14 +487,15 @@ This binds =M-Q= to be the inverse of =M-q= (=M-x fill-paragraph=).
 
 #+begin_src elisp
   (use-package nov
-    :defer 3
-    :config (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+    :if (executable-find "unzip")
+    :mode ("\\.epub\\'" . nov-mode))
 #+end_src
 
 View and annotate PDFs.
 
 #+begin_src elisp
   (use-package pdf-tools
+    :if (not (memq system-type '(ms-dos windows-nt cygwin)))
     :defer 3
     :config (pdf-tools-install)
     (setq pdf-annot-activate-created-annotations t))
@@ -520,11 +522,6 @@ Adapted from [[https://github.com/jwiegley/dot-emacs/blob/master/init.el][jwiegl
 
   (use-package company-auctex
     :after (company latex))
-
-  (use-package company-elisp
-    :after company
-    :config
-    (push 'company-elisp company-backends))
 #+end_src
 
 Git VCS.
@@ -700,7 +697,6 @@ Set up =org-journal= for personal journaling. I change the prefix key to =C-c j=
     :init (setq org-journal-prefix-key "C-c j ")
     :config (setq org-journal-dir (expand-file-name "journal" org-directory)
                   org-journal-enable-encryption t
-                  org-journal-enable-agenda-integration t
                   org-journal-enable-cache t
                   org-journal-start-on-weekday 7
                   org-journal-file-type 'weekly))
@@ -754,6 +750,7 @@ Set up =org-roam= to manage my personal knowledge wiki.
     :diminish
     :hook (after-init . org-roam-mode)
     :custom (org-roam-directory (expand-file-name "roam" org-directory))
+    :config (setq org-roam-db-location (expand-file-name "org-roam.db" org-roam-directory))
     :bind (:map org-roam-mode-map
                 (("C-c n l" . org-roam)
                  ("C-c n f" . org-roam-find-file)

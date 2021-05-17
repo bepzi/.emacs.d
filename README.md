@@ -21,7 +21,7 @@ That's it!
 
  - Clone this repository to your `$HOME` folder, or wherever
  `.emacs.d` should live on your operating system. On Windows 10,
- you'll want to put it in `C:\Users\<user>\AppData\Roaming\.emacs.d`.
+ you'll want to put it in `C:\Users\<User>\AppData\Roaming\.emacs.d`.
 
  - Launch Emacs; it may take a minute or so for the packages to
  download and compile. After this is done, though, starting Emacs
@@ -31,13 +31,21 @@ For best visual results, install [Adobe Source Serif
 4](https://github.com/adobe-fonts/source-serif) (Regular, Italic,
 Bold, and BoldItalic versions.)
 
-Windows users may need to install
-[GnuPG](https://www.emacswiki.org/emacs/GnuPG) for `org-crypt`.
-
 For `Org-Protocol`, see
 [here](https://www.orgroam.com/manual.html#Installation-_00281_0029).
 
-#### Daemon mode with `emacsclient`
+**Additional Windows dependencies** (make sure the binaries are
+available on the `%PATH%`):
+
+ - [GnuPG](https://www.emacswiki.org/emacs/GnuPG) for `org-crypt`
+ - [`sqlite3`](https://sqlite.org/index.html) for `org-roam`
+ - `unzip` for `nov.el` (you can install [Git
+   Bash](https://gitforwindows.org/) and use the `unzip.exe` that
+   comes with it.)
+ - [Graphviz](https://graphviz.org/download/#windows) for rendering
+   `org-roam` graphs. Specifically, you need the `dot` executable.
+
+### Daemon mode and `emacsclient`
 
 If you're on **Linux** with `systemd`, I also recommend installing a
 user service that launches Emacs in daemon mode, and then also adding
