@@ -168,8 +168,8 @@ Use =display-line-numbers-mode= if it exists (Emacs 26+), otherwise use the depr
 
 #+begin_src elisp
   (if (fboundp 'global-display-line-numbers-mode)
-      (global-display-line-numbers-mode)
-    (global-linum-mode))
+      (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+    (add-hook 'prog-mode-hook #'linum-numbers))
 #+end_src
 
 Don't display the "Welcome to Emacs" stuff, just start in the =*scratch*= buffer. Also, make the scratch buffer empty.
