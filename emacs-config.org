@@ -707,8 +707,11 @@ Automatically boost the text size when editing a journal file.
       (org-narrow-to-subtree))
     (goto-char (point-max)))
 
-  (setq org-capture-templates '(("t" "Add unsorted data to the inbox" entry (file+headline org-default-notes-file "Inbox")
+  (setq org-capture-templates `(("t" "Add unsorted data to the inbox" entry (file+headline org-default-notes-file "Inbox")
                                  "** %?\n")
+
+                                ("a" "Add an actionable task to the agenda" entry (file+headline ,(expand-file-name "agenda.org" org-directory) "Tasks")
+                                 "** TODO %?\n")
 
                                 ("j" "Add a journal entry" plain (function my/org-journal-find-location)
                                  "** %(format-time-string org-journal-time-format)\n%i%?")))
