@@ -310,6 +310,16 @@ Disallow the cursor in the minibuffer prompt.
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 #+end_src
 
+Add [[https://github.com/minad/marginalia][marginalia]] for extra info in the minibuffer.
+
+#+begin_src elisp
+  (use-package marginalia
+    :bind (:map minibuffer-local-map
+                ("M-A" . marginalia-cycle))
+    :init
+    (marginalia-mode))
+#+end_src
+
 ** Appearance
 
 Disable scrollbars and the tacky menu bar. Without them, we can almost pretend this is a lean and modern editor!
