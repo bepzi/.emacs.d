@@ -789,12 +789,13 @@ Automatically boost the text size when editing a journal file.
 Set up =org-agenda=. =C-c a= gives me a menu from which I can pull all of my =TODO='s, events, and projects out of my Org database.
 
 #+begin_src elisp
+  (setq org-todo-keywords '((sequence "THEN(n)" "TODO(t)" "|" "DONE(d)" "CANCELLED(c)")))
+
   (global-set-key (kbd "C-c a") 'org-agenda)
 
   (setq org-agenda-files `(,(expand-file-name "agenda.org" org-directory) ,org-default-notes-file)
-        org-agenda-start-on-weekday nil)
-
-  (setq org-todo-keywords '((sequence "THEN(n)" "TODO(t)" "|" "DONE(d)" "CANCELLED(c)")))
+        org-agenda-start-on-weekday nil
+        org-agenda-custom-commands '((" " tags "/TODO")))
 #+end_src
 
 Set up =org-roam= to manage my personal knowledge wiki.
