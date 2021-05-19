@@ -1,0 +1,3 @@
+[submodule "org-roam"]
+	path = org-roam
+	url = https://github.com/org-roam/org-roam.git
