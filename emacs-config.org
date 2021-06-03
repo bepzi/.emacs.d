@@ -802,10 +802,10 @@ Set up =org-roam= to manage my personal knowledge wiki.
 
 #+begin_src elisp
   (use-package emacsql-sqlite
+    :if (executable-find "sqlite3")
     :defer 1)
 
   (use-package org-roam
-    :if (executable-find "sqlite3")
     :load-path "org-roam" ; Use the submodule, which is on the V2 branch
     :after emacsql-sqlite
     :custom (org-roam-directory (expand-file-name "roam" org-directory))
