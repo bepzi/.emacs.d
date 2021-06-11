@@ -677,6 +677,12 @@ Make =M-;= produce C99+ line comments rather than block comments.
   (add-hook 'c-mode-hook (lambda () (setq comment-start "//" comment-end "")))
 #+end_src
 
+Set the default indent width to =4=.
+
+#+begin_src elisp
+  (setq-default c-basic-offset 4)
+#+end_src
+
 Use =clang-format= to format C/C++ source code. This relies on there being a =.clang-format= file somewhere in or above the current directory. You can generate one based on the default styles with a command like =clang-format -style=llvm -dump-config > .clang-format=, and then tweak it to suit your needs.
 
 The keybinding will only be available in [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][CC Mode]] buffers. Note that we defer adding the binding to =c-mode-base-map= until after =c-initialization-hook= is run, because otherwise, that keymap won't be defined.
