@@ -711,6 +711,12 @@ Language server protocol mode, and its associated UIs. By default, try to use =r
     :requires lsp-mode)
 #+end_src
 
+Clojure and ClojureScript.
+
+#+begin_src elisp
+  (use-package clojure-mode)
+#+end_src
+
 ** Org mode
 
 Don't automatically indent the text to match the headers.
