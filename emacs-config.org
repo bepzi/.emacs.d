@@ -751,32 +751,6 @@ When editing encrypted files, make sure they're not autosaved to disk unencrypte
 #+begin_src elisp
   (global-set-key (kbd "C-c c") 'org-capture)
 
-  (defun my/org-journal-find-location ()
-    ;; Open today's journal, but specify a non-nil prefix argument in order to
-    ;; inhibit inserting the heading; org-capture will insert the heading.
-    (org-journal-new-entry t)
-    (unless (eq org-journal-file-type 'daily)
-      (org-narrow-to-subtree))
-    (goto-char (point-max)))
-
   (setq org-capture-templates `(("t" "Add unsorted data to the inbox" entry (file+headline org-default-notes-file "Inbox")
-                                 "** %?\n")
-
-                                ("a" "Add an actionable task to the agenda" entry (file+headline ,(expand-file-name "agenda.org" org-directory) "Tasks")
-                                 "** TODO %?\n")
-
-                                ("j" "Add a journal entry" plain (function my/org-journal-find-location)
-                                 "** %(format-time-string org-journal-time-format)\n%i%?")))
-#+end_src
-
-Set up =org-agenda=. =C-c a= gives me a menu from which I can pull all of my =TODO='s, events, and projects out of my Org database.
-
-#+begin_src elisp
-  (setq org-todo-keywords '((sequence "THEN(n)" "TODO(t)" "|" "DONE(d)" "CANCELLED(c)")))
-
-  (global-set-key (kbd "C-c a") 'org-agenda)
-
-  (setq org-agenda-files `(,(expand-file-name "agenda.org" org-directory) ,org-default-notes-file)
-        org-agenda-start-on-weekday nil
-        org-agenda-custom-commands '((" " tags "/TODO")))
+                                 "** %?\n")))
 #+end_src
