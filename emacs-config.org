@@ -726,20 +726,12 @@ Don't automatically indent the text to match the headers.
   (setq org-adapt-indentation nil)
 #+end_src
 
-When editing encrypted files, make sure they're not autosaved to disk unencrypted. The default value is to prompt, and I don't want to have to think about it.
+When editing encrypted files, make sure they're not autosaved to disk unencrypted. The default value is to prompt, and I don't want to have to think about it. Also, ensure files are properly encrypted before being saved to disk.
 
 #+begin_src elisp
   (setq org-crypt-disable-auto-save t)
-#+end_src
-
-Other =org-crypt= stuff: setting the default PGP key, ensuring files are encrypted before being saved to disk, etc.
-
-#+begin_src elisp
   (org-crypt-use-before-save-magic)
   (setq org-tags-exclude-from-inheritance '("crypt"))
-
-  (when (boundp 'secrets/org-crypt-key)
-    (setq org-crypt-key secrets/org-crypt-key))
 #+end_src
 
 =org-store-link= can capture links to /files/, not just websites, and the links can be retrieved later with =C-c C-l= in Org mode. This is super useful for building links between different files and external websites in my Org database.
@@ -752,25 +744,6 @@ Other =org-crypt= stuff: setting the default PGP key, ensuring files are encrypt
   (when (boundp 'secrets/org-directory)
     (setq org-directory secrets/org-directory))
   (setq org-default-notes-file (expand-file-name "inbox.org" org-directory))
-#+end_src
-
-Set up =org-journal= for personal journaling. I change the prefix key to =C-c j= because I don't want =org-journal= and vanilla =org-mode= to clash.
-
-#+begin_src elisp
-  (use-package org-journal
-    :defer t
-    :init (setq org-journal-prefix-key "C-c j ")
-    :config (setq org-journal-dir (expand-file-name "journal" org-directory)
-                  org-journal-enable-encryption t
-                  org-journal-enable-cache t
-                  org-journal-start-on-weekday 7
-                  org-journal-file-type 'weekly))
-#+end_src
-
-Automatically boost the text size when editing a journal file.
-
-#+begin_src elisp
-  (add-hook 'org-journal-mode-hook (lambda () (text-scale-increase 1)))
 #+end_src
 
 =org-capture= is how I send and append text and data to my database of Org files.
@@ -806,27 +779,4 @@ Set up =org-agenda=. =C-c a= gives me a menu from which I can pull all of my =TO
   (setq org-agenda-files `(,(expand-file-name "agenda.org" org-directory) ,org-default-notes-file)
         org-agenda-start-on-weekday nil
         org-agenda-custom-commands '((" " tags "/TODO")))
-#+end_src
-
-Set up =org-roam= to manage my personal knowledge wiki.
-
-#+begin_src elisp
-  (use-package emacsql-sqlite
-    :if (executable-find "sqlite3")
-    :defer 1)
-
-  (use-package org-roam
-    :load-path "org-roam" ; Use the submodule, which is on the V2 branch
-    :after emacsql-sqlite
-    :custom (org-roam-directory (expand-file-name "roam" org-directory))
-    (org-roam-file-extensions '("org"))
-    :config (setq org-roam-db-location (expand-file-name "org-roam.db" org-roam-directory))
-    (define-key org-roam-mode-map [mouse-1] #'org-roam-visit-thing)
-    (org-roam-setup)
-    :bind (("C-c n /" . org-roam-node-find)
-           ("C-c n c" . org-roam-capture)
-           ("C-c n i" . org-roam-node-insert)
-           ("C-c n r" . org-roam-buffer-toggle)))
-
-  (require 'org-roam-protocol)
 #+end_src
