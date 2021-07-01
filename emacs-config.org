@@ -711,11 +711,11 @@ Language server protocol mode, and its associated UIs. By default, try to use =r
     :requires lsp-mode)
 #+end_src
 
-Elm.
+Clojure and ClojureScript.
 
 #+begin_src elisp
-  (use-package elm-mode
-    :hook (elm-mode . elm-format-on-save-mode))
+  (use-package clojure-mode
+    :defer t)
 #+end_src
 
 ** Org mode
