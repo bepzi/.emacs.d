@@ -549,11 +549,11 @@ This binds =M-Q= to be the inverse of =M-q= (=M-x fill-paragraph=).
 View and annotate PDFs.
 
 #+begin_src elisp
-  (use-package pdf-tools
-    :if (not (memq system-type '(ms-dos windows-nt cygwin)))
-    :defer 3
-    :config (pdf-tools-install)
-    (setq pdf-annot-activate-created-annotations t))
+  ;; (use-package pdf-tools
+  ;;   :if (not (memq system-type '(ms-dos windows-nt cygwin)))
+  ;;   :defer 3
+  ;;   :config (pdf-tools-install)
+  ;;   (setq pdf-annot-activate-created-annotations t))
 #+end_src
 
 ** Programming
