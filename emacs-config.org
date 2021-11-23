@@ -704,11 +704,11 @@ Language server protocol mode, and its associated UIs. By default, try to use =r
     :commands (lsp lsp-deferred)
     :hook (((rust-mode c-mode c++-mode) . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
+    :init (setq lsp-keymap-prefix "C-c y")
     :config (setq lsp-rust-server 'rust-analyzer))
 
   (use-package lsp-ui
-    :commands lsp-ui-mode
-    :requires lsp-mode)
+    :commands lsp-ui-mode)
 #+end_src
 
 Clojure and ClojureScript.
