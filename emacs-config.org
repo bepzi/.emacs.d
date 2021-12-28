@@ -423,36 +423,9 @@ The default =whitespace-mode= theme is hideously ugly, so we change it to blend 
       (set-face-attribute 'whitespace-trailing nil :background lighter-background :foreground nil)))
 #+end_src
 
-Theme Org-mode so that it's more writing-oriented. See [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][here]]. In particular, we use a variable-pitched font for the basic text, and a fixed-pitch font for code and attributes.
+Theme Org-mode so that it's more writing-oriented. See [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][here]]. Although I enjoyed the look of the variable-pitch font, I found it was brittle to set up and often conflicted with other parts of Emacs (tabs and minibuffer).
 
 Once again, we need to ensure =org.el= is loaded before we can customize its faces and colors.
-
-#+begin_src elisp
-  (with-eval-after-load 'org
-    (let ((variable-font (face-attribute 'variable-pitch :family)))
-
-      ;; Set up headers and stuff to use variable-pitch.
-      (let ((org-variable-faces '(org-level-8 org-level-7 org-level-6 org-level-5
-                                              org-level-4 org-level-3 org-level-2
-                                              org-level-1 org-document-title)))
-        (dolist (face org-variable-faces)
-          (set-face-attribute face nil :family variable-font)))
-
-      ;; When global variable-pitch-mode is enabled, we need to reset
-      ;; everything else back to fixed-pitch.
-      (let ((org-fixed-faces '(org-block org-meta-line org-property-value org-table))
-            (org-fixed-shadow-faces '(org-code org-document-info-keyword org-tag org-verbatim)))
-        (dolist (face org-fixed-faces)
-          (set-face-attribute face nil :inherit 'fixed-pitch))
-        (dolist (face org-fixed-shadow-faces)
-          (set-face-attribute face nil :inherit '(fixed-pitch shadow)))
-
-        (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-        (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-
-        (set-face-attribute 'org-tag nil :weight 'bold :height 0.8)
-        (set-face-attribute 'org-link nil :underline t))))
-#+end_src
 
 #+begin_src elisp
   (when (> emacs-major-version 27)
@@ -475,12 +448,10 @@ Finally, if we're loading in daemon mode, defer loading the themes; otherwise, j
     (my/apply-themes-and-styles))
 #+end_src
 
-Make Org-mode WYSIWYG, and set up the variable-pitch font.
+Make Org-mode WYSIWYG.
 
 #+begin_src elisp
   (setq org-hide-emphasis-markers t)
-
-  (add-hook 'org-mode-hook 'variable-pitch-mode)
   (add-hook 'buffer-face-mode-hook (lambda () (diminish 'buffer-face-mode)))
 #+end_src
 
